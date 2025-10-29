@@ -1,98 +1,351 @@
+// app/(tabs)/index.tsx
+import { useState, useEffect } from 'react';
+import { 
+  StyleSheet, 
+  FlatList, 
+  ActivityIndicator, 
+  TouchableOpacity,
+  RefreshControl,
+  View,
+  TextInput
+} from 'react-native';
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { router } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import MarvelRivalsAPI, { Hero } from '@/services/marvelRivalsApi';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
-export default function HomeScreen() {
+export default function HeroesScreen() {
+  const [heroes, setHeroes] = useState<Hero[]>([]);
+  const [filteredHeroes, setFilteredHeroes] = useState<Hero[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+
+  // Obtener colores FUERA del render
+  const backgroundColor = useThemeColor({}, 'background');
+  const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#333' }, 'background');
+  const textColor = useThemeColor({}, 'text');
+
+  useEffect(() => {
+    loadHeroes();
+  }, []);
+
+  useEffect(() => {
+    filterHeroes();
+  }, [searchQuery, selectedRole, heroes]);
+
+  const loadHeroes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await MarvelRivalsAPI.getHeroes();
+      setHeroes(data);
+      setFilteredHeroes(data);
+    } catch (err: any) {
+      setError(err.message || 'Error al cargar los héroes. Intenta nuevamente.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadHeroes();
+    setRefreshing(false);
+  };
+
+  const filterHeroes = () => {
+    let filtered = heroes;
+
+    if (searchQuery) {
+      filtered = filtered.filter(hero =>
+        hero.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (selectedRole) {
+      filtered = filtered.filter(hero => hero.role === selectedRole);
+    }
+
+    setFilteredHeroes(filtered);
+  };
+
+  const roles = ['Duelist', 'Vanguard', 'Strategist'];
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'Duelist': return '#e23636';
+      case 'Vanguard': return '#3b82f6';
+      case 'Strategist': return '#10b981';
+      default: return '#666';
+    }
+  };
+
+  if (loading) {
+    return (
+      <ThemedView style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#e23636" />
+        <ThemedText style={styles.loadingText}>Cargando héroes...</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (error) {
+    return (
+      <ThemedView style={styles.centerContainer}>
+        <ThemedText style={styles.errorText}>{error}</ThemedText>
+        <TouchableOpacity style={styles.retryButton} onPress={loadHeroes}>
+          <ThemedText style={styles.retryText}>Reintentar</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+    <ThemedView style={styles.container}>
+      <ThemedView style={styles.header}>
+        <ThemedText type="title" style={styles.title}>Marvel Rivals</ThemedText>
+        <ThemedText style={styles.subtitle}>{filteredHeroes.length} Héroes</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
+      {/* Buscador */}
+      <ThemedView style={[styles.searchContainer, { borderColor }]}>
+        <TextInput
+          style={[styles.searchInput, { color: textColor }]}
+          placeholder="Buscar héroe..."
+          placeholderTextColor="#999"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+      {/* Filtros por rol */}
+      <View style={styles.filtersContainer}>
+        <TouchableOpacity
+          style={[
+            styles.filterChip,
+            !selectedRole && styles.filterChipActive
+          ]}
+          onPress={() => setSelectedRole(null)}
+        >
+          <ThemedText style={[
+            styles.filterText,
+            !selectedRole && styles.filterTextActive
+          ]}>
+            Todos
+          </ThemedText>
+        </TouchableOpacity>
+        {roles.map(role => (
+          <TouchableOpacity
+            key={role}
+            style={[
+              styles.filterChip,
+              selectedRole === role && styles.filterChipActive,
+              { borderColor: getRoleColor(role) }
+            ]}
+            onPress={() => setSelectedRole(selectedRole === role ? null : role)}
+          >
+            <ThemedText style={[
+              styles.filterText,
+              selectedRole === role && styles.filterTextActive
+            ]}>
+              {role}
+            </ThemedText>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Lista de héroes */}
+      <FlatList
+        data={filteredHeroes}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        renderItem={({ item }) => {
+          const heroImage = item.imageUrl || item.portrait || item.icon;
+          
+          return (
+            <TouchableOpacity
+              style={[styles.heroCard, { backgroundColor, borderColor }]}
+              onPress={() => router.push(`/hero/${item.name}`)}
+            >
+              {heroImage ? (
+                <Image
+                  source={{ uri: heroImage }}
+                  style={styles.heroImage}
+                  contentFit="cover"
+                />
+              ) : (
+                <ThemedView style={styles.heroImagePlaceholder}>
+                  <ThemedText style={styles.placeholderText}>
+                    {item.name.charAt(0)}
+                  </ThemedText>
+                </ThemedView>
+              )}
+              <ThemedView style={styles.heroInfo}>
+                <ThemedText 
+                  style={styles.heroName}
+                  numberOfLines={1}
+                >
+                  {item.name}
+                </ThemedText>
+                <ThemedText 
+                  style={[
+                    styles.heroRole,
+                    { color: getRoleColor(item.role) }
+                  ]}
+                >
+                  {item.role}
+                </ThemedText>
+                {item.difficulty && (
+                  <ThemedText style={styles.heroDifficulty}>
+                    {item.difficulty}
+                  </ThemedText>
+                )}
+              </ThemedView>
+            </TouchableOpacity>
+          );
+        }}
+      />
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+  },
+  header: {
+    padding: 20,
+    paddingTop: 60,
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    opacity: 0.7,
+  },
+  searchContainer: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  searchInput: {
+    padding: 12,
+    fontSize: 16,
+  },
+  filtersContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginBottom: 16,
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#666',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  filterChipActive: {
+    backgroundColor: '#e23636',
+    borderColor: '#e23636',
+  },
+  filterText: {
+    fontSize: 14,
+    color: '#999',
+  },
+  filterTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  errorText: {
+    color: '#ff6b6b',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#e23636',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  listContent: {
+    padding: 12,
+  },
+  row: {
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  heroCard: {
+    width: '48%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+  },
+  heroImage: {
+    width: '100%',
+    height: 180,
+    backgroundColor: '#222',
+  },
+  heroImagePlaceholder: {
+    width: '100%',
+    height: 180,
+    backgroundColor: '#e23636',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  heroInfo: {
+    padding: 12,
+  },
+  heroName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  heroRole: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  heroDifficulty: {
+    fontSize: 12,
+    opacity: 0.6,
   },
 });
