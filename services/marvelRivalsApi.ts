@@ -11,7 +11,7 @@ export interface Hero {
   alias?: string;
   role: string;
   difficulty?: string;
-  difficultyStars?: number; // ⭐ Nuevo
+  difficultyStars?: number;
   description?: string;
   abilities?: Ability[];
   imageUrl?: string;
@@ -40,15 +40,12 @@ class MarvelRivalsAPI {
   
   /**
    * Limpiar HTML de un texto
-   * Convierte: "<p>Hola <strong>mundo</strong></p>" -> "Hola mundo"
    */
   private cleanHtml(text?: string | null): string {
     if (!text) return '';
     
-    // Remover todas las etiquetas HTML
     let cleaned = text.replace(/<[^>]*>/g, '');
     
-    // Decodificar entidades HTML comunes
     cleaned = cleaned
       .replace(/&nbsp;/g, ' ')
       .replace(/&amp;/g, '&')
@@ -58,14 +55,13 @@ class MarvelRivalsAPI {
       .replace(/&#39;/g, "'")
       .replace(/&apos;/g, "'");
     
-    // Limpiar espacios múltiples
     cleaned = cleaned.replace(/\s+/g, ' ').trim();
     
     return cleaned;
   }
 
   /**
-   * Capitalizar nombre (squirrel girl -> Squirrel Girl)
+   * Capitalizar nombre
    */
   private capitalizeName(name?: string | null): string | undefined {
     if (!name) return undefined;
@@ -80,62 +76,48 @@ class MarvelRivalsAPI {
    * Convertir dificultad a número de estrellas (1-5)
    */
   private getDifficultyStars(difficulty?: string | null): number {
-    if (!difficulty) return 3; // Default: 3 estrellas
+    if (!difficulty) return 3;
     
     const diff = difficulty.toLowerCase();
     
-    // Mapeo común de dificultades
     if (diff.includes('very easy') || diff.includes('beginner')) return 1;
     if (diff.includes('easy')) return 2;
     if (diff.includes('medium') || diff.includes('moderate') || diff.includes('normal')) return 3;
     if (diff.includes('hard') || diff.includes('challenging')) return 4;
     if (diff.includes('very hard') || diff.includes('expert')) return 5;
     
-    // Por si viene como número
     const num = parseInt(diff);
     if (!isNaN(num) && num >= 1 && num <= 5) return num;
     
-    return 3; // Default
+    return 3;
   }
 
   /**
    * Construir URL completa de imagen
    */
-  private buildImageUrl(partialPath?: string | null): string | undefined {
-    if (!partialPath) return undefined;
+  private buildImageUrl(imagePath?: string | null): string | undefined {
+    if (!imagePath) return undefined;
     
     // Si ya es una URL completa, devolverla
-    if (partialPath.startsWith('http')) return partialPath;
-    
-    // Limpiar la ruta (quitar /rivals duplicado si existe)
-    let cleanPath = partialPath.replace(/^\/rivals/, '');
+    if (imagePath.startsWith('http')) return imagePath;
     
     // Asegurarse de que empiece con /
-    if (!cleanPath.startsWith('/')) {
-      cleanPath = '/' + cleanPath;
-    }
+    const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
     
     // Construir URL completa
     return `${IMAGE_BASE_URL}${cleanPath}`;
   }
 
   /**
-   * Procesar héroe y limpiar HTML
+   * Procesar héroe desde la API
    */
   private processHero(hero: any): Hero {
-    // Intentar todas las posibles propiedades de imagen
-    const imageUrl = this.buildImageUrl(
-      hero.image_square || 
-      hero.image_transverse || 
-      hero.portrait || 
-      hero.icon ||
-      hero.image ||
-      hero.avatar
-    );
+    // La API devuelve imageUrl directamente
+    const imageUrl = this.buildImageUrl(hero.imageUrl);
 
-    // Procesar habilidades y limpiar HTML
+    // Procesar habilidades
     const abilities = (hero.abilities || []).map((ability: any) => ({
-      ability_name: this.cleanHtml(ability.ability_name || ability.name),
+      ability_name: this.cleanHtml(ability.name || ability.ability_name),
       description: this.cleanHtml(ability.description),
       cooldown: ability.cooldown,
     }));
@@ -143,11 +125,11 @@ class MarvelRivalsAPI {
     return {
       id: hero.id || hero.name,
       name: this.cleanHtml(hero.name),
-      alias: this.capitalizeName(this.cleanHtml(hero.alias || hero.real_name)),
+      alias: this.capitalizeName(this.cleanHtml(hero.real_name || hero.alias)),
       role: hero.role,
       difficulty: hero.difficulty,
       difficultyStars: this.getDifficultyStars(hero.difficulty),
-      description: this.cleanHtml(hero.description),
+      description: this.cleanHtml(hero.bio || hero.description),
       abilities,
       imageUrl,
     };
@@ -186,18 +168,16 @@ class MarvelRivalsAPI {
    * Obtener todos los héroes
    */
   async getHeroes(): Promise<Hero[]> {
-    const response = await this.request<any>('/heroes');
-    const heroesData = response.heroes || response.data || response;
+    const heroesData = await this.request<any[]>('/heroes');
     
     if (!Array.isArray(heroesData)) {
-      console.error('⚠️ Respuesta no es un array:', response);
+      console.error('⚠️ Respuesta no es un array:', heroesData);
       return [];
     }
     
     const processedHeroes = heroesData.map(hero => this.processHero(hero));
     console.log('🦸‍♂️ Héroes procesados:', processedHeroes.length);
     
-    // Mostrar ejemplo de un héroe procesado
     if (processedHeroes.length > 0) {
       console.log('📝 Ejemplo héroe:', processedHeroes[0]);
     }
@@ -214,8 +194,7 @@ class MarvelRivalsAPI {
     
     console.log('🔍 Buscando héroe:', cleanName);
     
-    const response = await this.request<any>(`/heroes/hero/${encodedName}`);
-    const heroData = response.hero || response.data || response;
+    const heroData = await this.request<any>(`/heroes/hero/${encodedName}`);
     
     return this.processHero(heroData);
   }
