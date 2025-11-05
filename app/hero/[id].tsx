@@ -1,18 +1,21 @@
-// app/hero/[id].tsx
 import { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   ScrollView, 
   ActivityIndicator,
   View,
-  TouchableOpacity
+  TouchableOpacity,
+  Dimensions
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import MarvelRivalsAPI, { Hero } from '@/services/marvelRivalsApi';
 import { useThemeColor } from '@/hooks/use-theme-color';
+
+const { width } = Dimensions.get('window');
 
 export default function HeroDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,7 +24,7 @@ export default function HeroDetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const backgroundColor = useThemeColor({}, 'background');
-  const cardColor = useThemeColor({ light: '#f5f5f5', dark: '#1a1a1a' }, 'background');
+  const cardColor = useThemeColor({ light: '#ffffff', dark: '#1c1c1e' }, 'background');
 
   useEffect(() => {
     if (id) {
@@ -43,12 +46,32 @@ export default function HeroDetailScreen() {
     }
   };
 
-  const getRoleColor = (role: string) => {
+  const getRoleConfig = (role: string) => {
     switch (role) {
-      case 'Duelist': return '#e23636';
-      case 'Vanguard': return '#3b82f6';
-      case 'Strategist': return '#10b981';
-      default: return '#666';
+      case 'Duelist': 
+        return { 
+          color: '#e23636', 
+          gradient: ['#e23636', '#ff6b6b'],
+          icon: '⚔️'
+        };
+      case 'Vanguard': 
+        return { 
+          color: '#3b82f6', 
+          gradient: ['#3b82f6', '#60a5fa'],
+          icon: '🛡️'
+        };
+      case 'Strategist': 
+        return { 
+          color: '#10b981', 
+          gradient: ['#10b981', '#34d399'],
+          icon: '✨'
+        };
+      default: 
+        return { 
+          color: '#666', 
+          gradient: ['#666', '#888'],
+          icon: '⭐'
+        };
     }
   };
 
@@ -58,6 +81,7 @@ export default function HeroDetailScreen() {
         <Stack.Screen options={{ title: 'Cargando...' }} />
         <ThemedView style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#e23636" />
+          <ThemedText style={styles.loadingText}>Cargando héroe...</ThemedText>
         </ThemedView>
       </>
     );
@@ -68,6 +92,7 @@ export default function HeroDetailScreen() {
       <>
         <Stack.Screen options={{ title: 'Error' }} />
         <ThemedView style={styles.centerContainer}>
+          <ThemedText style={styles.errorIcon}>❌</ThemedText>
           <ThemedText style={styles.errorText}>
             {error || 'Héroe no encontrado'}
           </ThemedText>
@@ -75,145 +100,194 @@ export default function HeroDetailScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ThemedText style={styles.backButtonText}>Volver</ThemedText>
+            <ThemedText style={styles.backButtonText}>← Volver</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </>
     );
   }
 
-  const heroImage = hero.imageUrl || hero.portrait || hero.icon;
+  const heroImage = hero.image_transverse || hero.image_square || hero.portrait || hero.icon;
+  const roleConfig = getRoleConfig(hero.role);
 
   return (
     <>
       <Stack.Screen 
         options={{ 
           title: hero.name,
-          headerBackTitle: 'Atrás'
+          headerBackTitle: 'Atrás',
+          headerTransparent: true,
+          headerTintColor: '#fff'
         }} 
       />
-      <ScrollView style={[styles.container, { backgroundColor }]}>
-        {/* Header con imagen */}
-        <View style={styles.imageContainer}>
+      <ScrollView 
+        style={[styles.container, { backgroundColor }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero Header Image */}
+        <View style={styles.heroHeader}>
           {heroImage ? (
-            <Image
-              source={{ uri: heroImage }}
-              style={styles.heroImage}
-              contentFit="cover"
-            />
+            <>
+              <Image
+                source={{ uri: heroImage }}
+                style={styles.heroImage}
+                contentFit="cover"
+              />
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.7)', backgroundColor]}
+                style={styles.imageGradient}
+              />
+            </>
           ) : (
-            <ThemedView style={styles.heroImagePlaceholder}>
-              <ThemedText style={styles.placeholderText}>
-                {hero.name.charAt(0)}
+            <View style={[styles.heroImagePlaceholder, { backgroundColor: roleConfig.color }]}>
+              <ThemedText style={styles.placeholderEmoji}>
+                {roleConfig.icon}
               </ThemedText>
-            </ThemedView>
+              <ThemedText style={styles.placeholderText}>
+                {hero.name}
+              </ThemedText>
+            </View>
           )}
-          <View style={styles.gradientOverlay} />
-        </View>
 
-        {/* Info principal */}
-        <ThemedView style={styles.content}>
-          <ThemedView style={styles.headerInfo}>
-            <ThemedText type="title" style={styles.heroName}>
+          {/* Hero Name Overlay */}
+          <View style={styles.heroNameOverlay}>
+            <ThemedText style={styles.heroNameLarge}>
               {hero.name}
             </ThemedText>
             {hero.alias && (
-              <ThemedText style={styles.alias}>{hero.alias}</ThemedText>
+              <ThemedText style={styles.heroAlias}>
+                "{hero.alias}"
+              </ThemedText>
             )}
-            <View style={styles.badges}>
-              <View 
-                style={[
-                  styles.badge,
-                  { backgroundColor: getRoleColor(hero.role) }
-                ]}
-              >
-                <ThemedText style={styles.badgeText}>{hero.role}</ThemedText>
-              </View>
-              {hero.difficulty && (
-                <View style={[styles.badge, styles.difficultyBadge]}>
-                  <ThemedText style={styles.badgeText}>
-                    {hero.difficulty}
-                  </ThemedText>
-                </View>
-              )}
-            </View>
-          </ThemedView>
+          </View>
+        </View>
 
-          {/* Descripción */}
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Role & Difficulty Badges */}
+          <View style={styles.badgesContainer}>
+            <View style={[styles.roleBadge, { backgroundColor: roleConfig.color }]}>
+              <ThemedText style={styles.roleIcon}>{roleConfig.icon}</ThemedText>
+              <ThemedText style={styles.roleBadgeText}>{hero.role}</ThemedText>
+            </View>
+            {hero.difficulty && (
+              <View style={styles.difficultyBadge}>
+                <ThemedText style={styles.difficultyText}>
+                  Dificultad: {hero.difficulty}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+
+          {/* Description Card */}
           {hero.description && (
-            <ThemedView style={[styles.section, { backgroundColor: cardColor }]}>
-              <ThemedText style={styles.sectionTitle}>Descripción</ThemedText>
+            <View style={[styles.card, { backgroundColor: cardColor }]}>
+              <View style={styles.cardHeader}>
+                <ThemedText style={styles.cardIcon}>📖</ThemedText>
+                <ThemedText style={styles.cardTitle}>Descripción</ThemedText>
+              </View>
               <ThemedText style={styles.description}>
                 {hero.description}
               </ThemedText>
-            </ThemedView>
+            </View>
           )}
 
-          {/* Habilidades */}
+          {/* Abilities Section */}
           {hero.abilities && hero.abilities.length > 0 && (
-            <ThemedView style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>
-                Habilidades ({hero.abilities.length})
-              </ThemedText>
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <ThemedText style={styles.sectionIcon}>⚡</ThemedText>
+                <ThemedText style={styles.sectionTitle}>
+                  Habilidades
+                </ThemedText>
+                <View style={styles.countBadge}>
+                  <ThemedText style={styles.countText}>
+                    {hero.abilities.length}
+                  </ThemedText>
+                </View>
+              </View>
+
               {hero.abilities.map((ability, index) => (
-                <ThemedView 
+                <View 
                   key={index}
                   style={[styles.abilityCard, { backgroundColor: cardColor }]}
                 >
                   <View style={styles.abilityHeader}>
-                    <ThemedText style={styles.abilityName}>
-                      {ability.ability_name}
-                    </ThemedText>
-                    {ability.cooldown && (
-                      <ThemedText style={styles.cooldown}>
-                        ⏱️ {ability.cooldown}s
+                    <View style={styles.abilityNumber}>
+                      <ThemedText style={styles.abilityNumberText}>
+                        {index + 1}
                       </ThemedText>
-                    )}
+                    </View>
+                    <View style={styles.abilityHeaderContent}>
+                      <ThemedText style={styles.abilityName}>
+                        {ability.ability_name}
+                      </ThemedText>
+                      {ability.cooldown && (
+                        <View style={styles.cooldownBadge}>
+                          <ThemedText style={styles.cooldownIcon}>⏱️</ThemedText>
+                          <ThemedText style={styles.cooldownText}>
+                            {ability.cooldown}s
+                          </ThemedText>
+                        </View>
+                      )}
+                    </View>
                   </View>
                   {ability.description && (
                     <ThemedText style={styles.abilityDescription}>
                       {ability.description}
                     </ThemedText>
                   )}
-                </ThemedView>
+                </View>
               ))}
-            </ThemedView>
+            </View>
           )}
 
-          {/* Stats adicionales */}
-          <ThemedView style={[styles.statsContainer, { backgroundColor: cardColor }]}>
-            <ThemedText style={styles.sectionTitle}>Información</ThemedText>
-            <View style={styles.statRow}>
-              <ThemedText style={styles.statLabel}>Nombre:</ThemedText>
-              <ThemedText style={styles.statValue}>{hero.name}</ThemedText>
+          {/* Stats Card */}
+          <View style={[styles.card, { backgroundColor: cardColor }]}>
+            <View style={styles.cardHeader}>
+              <ThemedText style={styles.cardIcon}>📊</ThemedText>
+              <ThemedText style={styles.cardTitle}>Información</ThemedText>
             </View>
-            {hero.alias && (
-              <View style={styles.statRow}>
-                <ThemedText style={styles.statLabel}>Alias:</ThemedText>
-                <ThemedText style={styles.statValue}>{hero.alias}</ThemedText>
+            
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <ThemedText style={styles.statLabel}>Nombre</ThemedText>
+                <ThemedText style={styles.statValue}>{hero.name}</ThemedText>
               </View>
-            )}
-            <View style={styles.statRow}>
-              <ThemedText style={styles.statLabel}>Rol:</ThemedText>
-              <ThemedText 
-                style={[
-                  styles.statValue,
-                  { color: getRoleColor(hero.role) }
-                ]}
-              >
-                {hero.role}
-              </ThemedText>
-            </View>
-            {hero.difficulty && (
-              <View style={styles.statRow}>
-                <ThemedText style={styles.statLabel}>Dificultad:</ThemedText>
-                <ThemedText style={styles.statValue}>
-                  {hero.difficulty}
+              
+              {hero.alias && (
+                <View style={styles.statItem}>
+                  <ThemedText style={styles.statLabel}>Alias</ThemedText>
+                  <ThemedText style={styles.statValue}>{hero.alias}</ThemedText>
+                </View>
+              )}
+              
+              <View style={styles.statItem}>
+                <ThemedText style={styles.statLabel}>Rol</ThemedText>
+                <ThemedText style={[styles.statValue, { color: roleConfig.color }]}>
+                  {roleConfig.icon} {hero.role}
                 </ThemedText>
               </View>
-            )}
-          </ThemedView>
-        </ThemedView>
+              
+              {hero.difficulty && (
+                <View style={styles.statItem}>
+                  <ThemedText style={styles.statLabel}>Dificultad</ThemedText>
+                  <ThemedText style={styles.statValue}>{hero.difficulty}</ThemedText>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Back Button */}
+          <TouchableOpacity 
+            style={[styles.fullBackButton, { backgroundColor: roleConfig.color }]}
+            onPress={() => router.back()}
+          >
+            <ThemedText style={styles.fullBackButtonText}>
+              ← Volver a Héroes
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </>
   );
@@ -229,143 +303,267 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  imageContainer: {
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
+  },
+  errorIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#ff6b6b',
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 32,
+  },
+  backButton: {
+    backgroundColor: '#e23636',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  heroHeader: {
     width: '100%',
-    height: 400,
+    height: 500,
     position: 'relative',
   },
   heroImage: {
     width: '100%',
     height: '100%',
   },
-  heroImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#e23636',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 120,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  gradientOverlay: {
+  imageGradient: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 100,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    height: 250,
+  },
+  heroImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  placeholderEmoji: {
+    fontSize: 100,
+  },
+  placeholderText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  heroNameOverlay: {
+    position: 'absolute',
+    bottom: 24,
+    left: 20,
+    right: 20,
+  },
+  heroNameLarge: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#fff',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 10,
+    marginBottom: 4,
+  },
+  heroAlias: {
+    fontSize: 18,
+    color: '#fff',
+    opacity: 0.9,
+    fontStyle: 'italic',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 8,
   },
   content: {
     padding: 20,
+    paddingTop: 0,
   },
-  headerInfo: {
+  badgesContainer: {
+    flexDirection: 'row',
+    gap: 12,
     marginBottom: 20,
   },
-  heroName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  alias: {
-    fontSize: 18,
-    opacity: 0.7,
-    marginBottom: 12,
-  },
-  badges: {
+  roleBadge: {
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
     gap: 8,
   },
-  badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+  roleIcon: {
+    fontSize: 18,
+  },
+  roleBadgeText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
   difficultyBadge: {
-    backgroundColor: '#666',
+    backgroundColor: '#333',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
-  badgeText: {
+  difficultyText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
-  section: {
-    marginBottom: 20,
-    padding: 16,
-    borderRadius: 12,
+  card: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  sectionTitle: {
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  cardIcon: {
+    fontSize: 24,
+  },
+  cardTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 12,
   },
   description: {
     fontSize: 16,
     lineHeight: 24,
     opacity: 0.8,
   },
+  section: {
+    marginBottom: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  sectionIcon: {
+    fontSize: 28,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  countBadge: {
+    backgroundColor: '#e23636',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   abilityCard: {
-    padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   abilityHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  abilityNumber: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#e23636',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+  },
+  abilityNumberText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  abilityHeaderContent: {
+    flex: 1,
   },
   abilityName: {
     fontSize: 18,
     fontWeight: 'bold',
-    flex: 1,
+    marginBottom: 6,
   },
-  cooldown: {
+  cooldownBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  cooldownIcon: {
+    fontSize: 14,
+  },
+  cooldownText: {
     fontSize: 14,
     opacity: 0.7,
+    fontWeight: '600',
   },
   abilityDescription: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
     opacity: 0.8,
+    paddingLeft: 48,
   },
-  statsContainer: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
+  statsGrid: {
+    gap: 16,
   },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
+  statItem: {
     borderBottomWidth: 1,
     borderBottomColor: '#333',
+    paddingBottom: 12,
   },
   statLabel: {
-    fontSize: 16,
-    opacity: 0.7,
+    fontSize: 14,
+    opacity: 0.6,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   statValue: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
   },
-  errorText: {
-    color: '#ff6b6b',
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
+  fullBackButton: {
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 40,
   },
-  backButton: {
-    backgroundColor: '#e23636',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backButtonText: {
+  fullBackButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });
