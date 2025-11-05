@@ -107,7 +107,7 @@ export default function HeroDetailScreen() {
     );
   }
 
-  const heroImage = hero.image_transverse || hero.image_square || hero.portrait || hero.icon;
+  const heroImage = hero.imageUrl;
   const roleConfig = getRoleConfig(hero.role);
 
   return (
@@ -170,10 +170,10 @@ export default function HeroDetailScreen() {
               <ThemedText style={styles.roleIcon}>{roleConfig.icon}</ThemedText>
               <ThemedText style={styles.roleBadgeText}>{hero.role}</ThemedText>
             </View>
-            {hero.difficulty && (
+            {hero.difficultyStars && (
               <View style={styles.difficultyBadge}>
                 <ThemedText style={styles.difficultyText}>
-                  Dificultad: {hero.difficulty}
+                  {'⭐'.repeat(hero.difficultyStars)}
                 </ThemedText>
               </View>
             )}
