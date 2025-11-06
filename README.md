@@ -1,53 +1,333 @@
-> Edited for use in IDX on 07/09/12
+📱 Marvel Rivals - Guía Completa de la App
+🎮 Descripción General
+Marvel Rivals es una aplicación móvil completa para fanáticos del juego competitivo 6v6 de Marvel. La app integra IA conversacional (Gemini) con datos en tiempo real de la API oficial de Marvel Rivals para ofrecer una experiencia de entrenamiento personalizada.
 
-# Welcome to your Expo app 👋
+🌟 Características Principales
+1. 🦸‍♂️ Catálogo de Héroes (app/(tabs)/index.tsx)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Visualización completa de todos los héroes del juego
+Filtros avanzados:
 
-## Get started
+Por rol (Duelist ⚔️, Vanguard 🛡️, Strategist ✨)
+Búsqueda por nombre/alias
 
-#### Android
 
-Android previews are defined as a `workspace.onStart` hook and started as a vscode task when the workspace is opened/started.
+Sistema de favoritos con persistencia local
+Cards interactivas con:
 
-Note, if you can't find the task, either:
-- Rebuild the environment (using command palette: `IDX: Rebuild Environment`), or
-- Run `npm run android -- --tunnel` command manually run android and see the output in your terminal. The device should pick up this new command and switch to start displaying the output from it.
+Imagen oficial del héroe
+Rol con badge de color
+Nombre y alias
+Indicador de favorito (❤️/🤍)
 
-In the output of this command/task, you'll find options to open the app in a
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You'll also find options to open the app's developer menu, reload the app, and more.
+Navegación: Tap en cualquier héroe → detalles completos
 
-#### Web
+2. 💜 Galacta - Entrenadora IA (app/(tabs)/ai.tsx)
+Tu asistente personal impulsado por Google Gemini AI.
+Capacidades:
 
-Web previews will be started and managred automatically. Use the toolbar to manually refresh.
+Análisis de héroes: "Dame tips para jugar Spider-Man"
+Composiciones de equipo: "¿Cuál es la mejor comp 2-2-2?"
+Recomendaciones personalizadas basadas en tus favoritos
+Comparador IA (nuevo): Compara 2 héroes con análisis detallado
+Historial contextual que recuerda la conversación
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Comandos especiales:
 
-## Get a fresh project
+"Compara Spider-Man vs Iron Man" → Abre comparador automáticamente
+Sugerencias rápidas pre-definidas
+Guardado de consejos favoritos (⭐)
 
-When you're ready, run:
+Interfaz:
 
-```bash
-npm run reset-project
+Chat estilo mensajería moderna
+Burbujas diferenciadas (usuario/IA)
+Animaciones de carga con feedback visual
+Botones de acceso rápido: ⚖️ Comparar, ⭐ Favoritos, 🔄 Limpiar
+
+
+3. ⚖️ Comparador de Héroes con IA (components/HeroComparator.tsx)
+Modal especializado para comparaciones detalladas.
+Análisis incluye:
+
+Pros y Contras de cada héroe (3 puntos c/u)
+Dificultad (estrellas 1-5)
+Veredicto imparcial de Galacta
+Recomendación personalizada considerando:
+
+Nivel de habilidad
+Héroes favoritos del usuario
+Estilo de juego
+
+
+
+Formato visual:
+
+Imágenes lado a lado (Hero1 vs Hero2)
+Cards categorizados (✅ Ventajas, ❌ Desventajas)
+Veredicto final con gradiente morado
+Botón para nueva comparación
+
+
+4. 📊 Detalles de Héroe (app/hero/[id].tsx)
+Vista completa al hacer tap en un héroe.
+Información mostrada:
+
+Header visual:
+
+Imagen a pantalla completa con gradiente
+Nombre y alias superpuestos
+Botón de favorito flotante
+
+
+Badges:
+
+Rol con color distintivo
+Dificultad en estrellas (⭐⭐⭐)
+Estado de favorito
+
+
+Secciones:
+
+📖 Descripción biográfica
+⚡ Habilidades (nombre, cooldown, descripción)
+📊 Información (rol, dificultad, alias)
+
+
+Tip de Galacta (si es favorito):
+
+Nota personalizada sobre consideración en recomendaciones
+
+
+
+
+5. 🔍 Búsqueda de Jugadores (app/(tabs)/explore.tsx)
+Consulta estadísticas de cualquier jugador.
+Datos disponibles:
+
+Perfil:
+
+Username
+Rango (🏆)
+Nivel de cuenta
+
+
+Héroes más jugados:
+
+Nombre del héroe
+Partidas jugadas
+Win Rate (%) con código de color:
+
+🟢 Verde: ≥50%
+🔴 Rojo: <50%
+
+
+
+
+
+Nota: Datos obtenidos de la API oficial de Marvel Rivals
+
+6. ⭐ Favoritos (app/favorites.tsx)
+Sistema completo de gestión de favoritos.
+Tipos de favoritos:
+
+Consejos de Galacta:
+
+Guardados desde el chat
+Categorizados automáticamente:
+
+🦸‍♂️ Tips de Héroe
+🎯 Composición
+💡 Estrategia
+
+
+Compartibles (📤)
+Eliminables individualmente
+
+
+Héroes favoritos:
+
+Acceso rápido desde home y detalles
+Toggle ❤️/🤍
+Considerados por Galacta en recomendaciones
+
+
+
+Funciones:
+
+Ver todos los favoritos con fecha
+Compartir consejos vía sistema nativo
+Limpiar todo con confirmación
+Contador de favoritos en header
+
+
+🛠️ Arquitectura Técnica
+Stack Tecnológico:
+
+Frontend: React Native + Expo Router
+Navegación: Expo Router (tabs + stack)
+IA: Google Gemini 2.0 Flash Exp
+API: Marvel Rivals API v1
+Persistencia: AsyncStorage
+UI: Gradientes (expo-linear-gradient), imágenes (expo-image)
+Animaciones: React Native Animated
+
+Servicios (/services):
+1. marvelRivalsApi.ts
+typescript- getHeroes(): Hero[]
+- getHero(name: string): Hero
+- getPlayerStats(username: string): PlayerStats
+- Limpieza automática de HTML
+- Procesamiento de imágenes
+- Manejo de errores robusto
+2. geminiService.ts
+typescript- sendMessage(message: string): string
+- compareHeroes(hero1, hero2): AIComparison
+- analyzeHero(name: string): string
+- suggestComposition(): string
+- Contexto de usuario (favoritos)
+- Historial de conversación
+- Detección de menciones de héroes
+3. favoritesService.ts
+typescript- saveFavorite(content: string)
+- getFavorites(): FavoriteMessage[]
+- addFavoriteHero(name: string)
+- getFavoriteHeroes(): string[]
+- toggleFavoriteHero(name: string): boolean
+- Categorización automática
+- Estadísticas de uso
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🎨 Diseño y UX
 
-To learn more about developing your project with Expo, look at the following resources:
+### Tema:
+- **Soporte dual:** Light/Dark mode automático
+- **Colores de roles:**
+  - 🔴 Duelist: `#e23636`
+  - 🔵 Vanguard: `#3b82f6`
+  - 🟢 Strategist: `#10b981`
+  - 💜 Galacta: `#9333ea`
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Características visuales:
+- Gradientes vibrantes en botones y headers
+- Cards con sombras y elevación
+- Animaciones suaves (pulso en avatar de Galacta)
+- Emojis estratégicos para mejor legibilidad
+- Feedback háptico en iOS
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 🔐 Configuración Requerida
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### APIs necesarias:
+1. **Marvel Rivals API:**
+   - Obtener en: https://marvelrivalsapi.com/dashboard
+   - Ubicación: `services/marvelRivalsApi.ts` → `API_KEY`
+
+2. **Google Gemini:**
+   - Obtener en: https://aistudio.google.com/app/apikey
+   - Ubicación: `services/geminiService.ts` → `GEMINI_API_KEY`
+
+---
+
+## 📱 Navegación
+```
+Root Layout (_layout.tsx)
+├── (tabs) [TabLayout]
+│   ├── index.tsx (🏠 Héroes)
+│   ├── ai.tsx (💜 Galacta)
+│   └── explore.tsx (🔍 Buscar)
+├── hero/[id].tsx (📄 Detalles de héroe)
+└── favorites.tsx (⭐ Modal de favoritos)
+
+🚀 Flujo de Usuario Típico
+
+Inicio:
+
+Explorar catálogo de héroes
+Filtrar por rol o buscar por nombre
+Marcar favoritos (❤️)
+
+
+Consultar a Galacta:
+
+"¿Qué héroe me recomiendas?" → Respuesta contextual
+"Compara Spider-Man vs Iron Man" → Comparador IA
+Guardar consejos útiles (⭐)
+
+
+Profundizar:
+
+Ver detalles completos de un héroe
+Analizar habilidades y estadísticas
+Buscar jugadores para ver meta
+
+
+Gestionar favoritos:
+
+Revisar consejos guardados
+Compartir estrategias
+Acceso rápido a héroes preferidos
+
+
+
+
+💡 Casos de Uso Avanzados
+Para principiantes:
+
+"Soy nuevo, ¿por dónde empiezo?"
+Filtrar héroes con ⭐⭐ (baja dificultad)
+Galacta recomienda héroes accesibles
+
+Para competitivos:
+
+Comparar héroes del meta actual
+Consultar composiciones 2-2-2
+Analizar win rates de jugadores top
+
+Para creadores de contenido:
+
+Compartir builds desde favoritos
+Capturar análisis de Galacta
+Estadísticas de jugadores pro
+
+
+🛡️ Manejo de Errores
+
+API Key inválida → Mensaje con link a obtención
+Límite de cuota → Sugerencia de espera
+Héroe no encontrado → Búsqueda alternativa
+Sin conexión → Retry manual
+Respuesta IA inválida → Fallback con datos básicos
+
+
+📦 Dependencias Clave
+json{
+  "@google/generative-ai": "IA conversacional",
+  "@react-native-async-storage/async-storage": "Persistencia",
+  "expo-linear-gradient": "Gradientes",
+  "expo-image": "Optimización de imágenes",
+  "expo-router": "Navegación file-based",
+  "react-native-reanimated": "Animaciones"
+}
+
+🎯 Próximas Mejoras (Roadmap)
+
+ Comparador múltiple (3+ héroes)
+ Modo offline con caché
+ Notificaciones de meta updates
+ Perfil de usuario con estadísticas
+ Integración con Discord/Twitter
+ Modo entrenamiento con IA
+
+
+📄 Licencia y Uso
+
+App: Open source (verifica repo)
+APIs: Requieren claves propias
+Gemini: Free tier disponible (límites aplican)
+Marvel Rivals API: Freemium model
