@@ -125,7 +125,7 @@ class MarvelRivalsAPI {
     return {
       id: hero.id || hero.name,
       name: this.cleanHtml(hero.name),
-      alias: this.capitalizeName(this.cleanHtml(hero.real_name || hero.alias)),
+      alias: this.capitalizeName(this.cleanHtml(hero.alias || hero.real_name)),
       role: hero.role,
       difficulty: hero.difficulty,
       difficultyStars: this.getDifficultyStars(hero.difficulty),

@@ -1,3 +1,4 @@
+// app/hero/[id].tsx
 import { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
@@ -13,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import MarvelRivalsAPI, { Hero } from '@/services/marvelRivalsApi';
+import FavoritesService from '@/services/favoritesService';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 const { width } = Dimensions.get('window');
@@ -20,6 +22,7 @@ const { width } = Dimensions.get('window');
 export default function HeroDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [hero, setHero] = useState<Hero | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,12 +41,23 @@ export default function HeroDetailScreen() {
       setError(null);
       const data = await MarvelRivalsAPI.getHero(id);
       setHero(data);
+      
+      // Verificar si está en favoritos
+      const favorite = await FavoritesService.isHeroFavorite(data.name);
+      setIsFavorite(favorite);
     } catch (err: any) {
       setError(err.message || 'Error al cargar el héroe');
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleFavorite = async () => {
+    if (!hero) return;
+    
+    const newState = await FavoritesService.toggleFavoriteHero(hero.name);
+    setIsFavorite(newState);
   };
 
   const getRoleConfig = (role: string) => {
@@ -114,10 +128,20 @@ export default function HeroDetailScreen() {
     <>
       <Stack.Screen 
         options={{ 
-          title: hero.name,
+          title: hero.alias || hero.name,
           headerBackTitle: 'Atrás',
           headerTransparent: true,
-          headerTintColor: '#fff'
+          headerTintColor: '#fff',
+          headerRight: () => (
+            <TouchableOpacity
+              style={styles.headerFavoriteButton}
+              onPress={toggleFavorite}
+            >
+              <ThemedText style={styles.headerFavoriteIcon}>
+                {isFavorite ? '❤️' : '🤍'}
+              </ThemedText>
+            </TouchableOpacity>
+          ),
         }} 
       />
       <ScrollView 
@@ -144,7 +168,7 @@ export default function HeroDetailScreen() {
                 {roleConfig.icon}
               </ThemedText>
               <ThemedText style={styles.placeholderText}>
-                {hero.name}
+                {hero.alias || hero.name}
               </ThemedText>
             </View>
           )}
@@ -152,11 +176,11 @@ export default function HeroDetailScreen() {
           {/* Hero Name Overlay */}
           <View style={styles.heroNameOverlay}>
             <ThemedText style={styles.heroNameLarge}>
-              {hero.name}
+              {hero.alias || hero.name}
             </ThemedText>
-            {hero.alias && (
+            {hero.name && hero.alias && (
               <ThemedText style={styles.heroAlias}>
-                "{hero.alias}"
+                "{hero.name}"
               </ThemedText>
             )}
           </View>
@@ -164,7 +188,7 @@ export default function HeroDetailScreen() {
 
         {/* Content */}
         <View style={styles.content}>
-          {/* Role & Difficulty Badges */}
+          {/* Role, Difficulty & Favorite Badges */}
           <View style={styles.badgesContainer}>
             <View style={[styles.roleBadge, { backgroundColor: roleConfig.color }]}>
               <ThemedText style={styles.roleIcon}>{roleConfig.icon}</ThemedText>
@@ -177,6 +201,17 @@ export default function HeroDetailScreen() {
                 </ThemedText>
               </View>
             )}
+            <TouchableOpacity
+              style={[
+                styles.favoriteBadge,
+                isFavorite && styles.favoriteBadgeActive
+              ]}
+              onPress={toggleFavorite}
+            >
+              <ThemedText style={styles.favoriteText}>
+                {isFavorite ? '❤️ Favorito' : '🤍 Agregar'}
+              </ThemedText>
+            </TouchableOpacity>
           </View>
 
           {/* Description Card */}
@@ -250,15 +285,17 @@ export default function HeroDetailScreen() {
             </View>
             
             <View style={styles.statsGrid}>
-              <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>Nombre</ThemedText>
-                <ThemedText style={styles.statValue}>{hero.name}</ThemedText>
-              </View>
-              
               {hero.alias && (
                 <View style={styles.statItem}>
-                  <ThemedText style={styles.statLabel}>Alias</ThemedText>
+                  <ThemedText style={styles.statLabel}>Nombre</ThemedText>
                   <ThemedText style={styles.statValue}>{hero.alias}</ThemedText>
+                </View>
+              )}
+              
+              {hero.name && (
+                <View style={styles.statItem}>
+                  <ThemedText style={styles.statLabel}>Alias</ThemedText>
+                  <ThemedText style={styles.statValue}>{hero.name}</ThemedText>
                 </View>
               )}
               
@@ -277,6 +314,23 @@ export default function HeroDetailScreen() {
               )}
             </View>
           </View>
+
+          {/* Galacta Tip */}
+          {isFavorite && (
+            <LinearGradient
+              colors={['#9333ea', '#7c3aed']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.galactaTip}
+            >
+              <ThemedText style={styles.galactaTipTitle}>
+                💜 Héroe Favorito
+              </ThemedText>
+              <ThemedText style={styles.galactaTipText}>
+                Galacta considerará a {hero.alias || hero.name} en sus recomendaciones personalizadas para ti.
+              </ThemedText>
+            </LinearGradient>
+          )}
 
           {/* Back Button */}
           <TouchableOpacity 
@@ -329,6 +383,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  headerFavoriteButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  headerFavoriteIcon: {
+    fontSize: 22,
   },
   heroHeader: {
     width: '100%',
@@ -393,6 +459,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginBottom: 20,
+    flexWrap: 'wrap',
   },
   roleBadge: {
     flexDirection: 'row',
@@ -420,6 +487,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  favoriteBadge: {
+    backgroundColor: '#33333322',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  favoriteBadgeActive: {
+    backgroundColor: '#e2363622',
+    borderColor: '#e23636',
+  },
+  favoriteText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
   card: {
     borderRadius: 16,
@@ -553,6 +636,23 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: '700',
+  },
+  galactaTip: {
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  galactaTipTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  galactaTipText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#fff',
+    opacity: 0.95,
   },
   fullBackButton: {
     paddingVertical: 18,

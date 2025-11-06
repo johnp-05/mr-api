@@ -14,10 +14,12 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import MarvelRivalsAPI, { Hero } from '@/services/marvelRivalsApi';
+import FavoritesService from '@/services/favoritesService';
 
 export default function HomeScreen() {
   const [heroes, setHeroes] = useState<Hero[]>([]);
   const [filteredHeroes, setFilteredHeroes] = useState<Hero[]>([]);
+  const [favoriteHeroes, setFavoriteHeroes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +32,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadHeroes();
+    loadFavorites();
   }, []);
 
   useEffect(() => {
@@ -51,15 +54,31 @@ export default function HomeScreen() {
     }
   };
 
+  const loadFavorites = async () => {
+    const favorites = await FavoritesService.getFavoriteHeroes();
+    setFavoriteHeroes(favorites);
+  };
+
+  const toggleFavorite = async (hero: Hero) => {
+    const heroName = hero.name;
+    const isFavorite = favoriteHeroes.includes(heroName);
+
+    if (isFavorite) {
+      await FavoritesService.removeFavoriteHero(heroName);
+      setFavoriteHeroes(prev => prev.filter(h => h !== heroName));
+    } else {
+      await FavoritesService.addFavoriteHero(heroName);
+      setFavoriteHeroes(prev => [...prev, heroName]);
+    }
+  };
+
   const filterHeroes = () => {
     let filtered = heroes;
 
-    // Filtrar por rol
     if (selectedRole) {
       filtered = filtered.filter(hero => hero.role === selectedRole);
     }
 
-    // Filtrar por búsqueda
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(hero => 
@@ -84,63 +103,61 @@ export default function HomeScreen() {
     }
   };
 
-  // Construir URL completa de imagen
-  const getImageUrl = (hero: Hero) => {
-    if (!hero.imageUrl) return null;
-    
-    // Si ya es una URL completa, retornarla
-    if (hero.imageUrl.startsWith('http')) {
-      return hero.imageUrl;
-    }
-    
-    // Construir URL completa
-    const cleanPath = hero.imageUrl.startsWith('/') 
-      ? hero.imageUrl 
-      : `/${hero.imageUrl}`;
-    
-    return `https://marvelrivalsapi.com${cleanPath}`;
-  };
-
   const roles = ['Duelist', 'Vanguard', 'Strategist'];
 
   const renderHeroCard = ({ item: hero }: { item: Hero }) => {
     const roleConfig = getRoleConfig(hero.role);
+    const isFavorite = favoriteHeroes.includes(hero.name);
     
     return (
-      <TouchableOpacity
-        style={[styles.heroCard, { backgroundColor: cardColor }]}
-        onPress={() => router.push(`/hero/${hero.id}`)}
-        activeOpacity={0.7}
-      >
-        {hero.imageUrl ? (
-          <Image
-            source={{ uri: hero.imageUrl }}
-            style={styles.heroImage}
-            contentFit="cover"
-          />
-        ) : (
-          <View style={[styles.heroImagePlaceholder, { backgroundColor: roleConfig.color }]}>
-            <ThemedText style={styles.heroPlaceholderIcon}>
-              {roleConfig.icon}
-            </ThemedText>
-          </View>
-        )}
-        
-        <View style={styles.heroInfo}>
-          <ThemedText style={styles.heroName} numberOfLines={1}>
-            {hero.name}
+      <View style={[styles.heroCard, { backgroundColor: cardColor }]}>
+        {/* Botón Favorito - Posición superior derecha */}
+        <TouchableOpacity
+          style={styles.favoriteButton}
+          onPress={() => toggleFavorite(hero)}
+          activeOpacity={0.7}
+        >
+          <ThemedText style={styles.favoriteIcon}>
+            {isFavorite ? '❤️' : '🤍'}
           </ThemedText>
-          {hero.alias && (
-            <ThemedText style={styles.heroAlias} numberOfLines={1}>
-              {hero.alias}
-            </ThemedText>
+        </TouchableOpacity>
+
+        {/* Card clickeable para ver detalles */}
+        <TouchableOpacity
+          style={styles.heroCardContent}
+          onPress={() => router.push(`/hero/${hero.id}`)}
+          activeOpacity={0.7}
+        >
+          {hero.imageUrl ? (
+            <Image
+              source={{ uri: hero.imageUrl }}
+              style={styles.heroImage}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={[styles.heroImagePlaceholder, { backgroundColor: roleConfig.color }]}>
+              <ThemedText style={styles.heroPlaceholderIcon}>
+                {roleConfig.icon}
+              </ThemedText>
+            </View>
           )}
-          <View style={[styles.roleBadge, { backgroundColor: roleConfig.color }]}>
-            <ThemedText style={styles.roleIcon}>{roleConfig.icon}</ThemedText>
-            <ThemedText style={styles.roleText}>{hero.role}</ThemedText>
+          
+          <View style={styles.heroInfo}>
+            <ThemedText style={styles.heroName} numberOfLines={1}>
+              {hero.name}
+            </ThemedText>
+            {hero.alias && (
+              <ThemedText style={styles.heroAlias} numberOfLines={1}>
+                {hero.alias}
+              </ThemedText>
+            )}
+            <View style={[styles.roleBadge, { backgroundColor: roleConfig.color }]}>
+              <ThemedText style={styles.roleIcon}>{roleConfig.icon}</ThemedText>
+              <ThemedText style={styles.roleText}>{hero.role}</ThemedText>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -169,12 +186,23 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>
-          Marvel Rivals
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          {filteredHeroes.length} héroes disponibles
-        </ThemedText>
+        <View style={styles.headerTop}>
+          <View>
+            <ThemedText type="title" style={styles.title}>
+              Marvel Rivals
+            </ThemedText>
+            <ThemedText style={styles.subtitle}>
+              {filteredHeroes.length} héroes disponibles
+            </ThemedText>
+          </View>
+          {favoriteHeroes.length > 0 && (
+            <View style={styles.favoritesCounter}>
+              <ThemedText style={styles.favoritesCounterText}>
+                ❤️ {favoriteHeroes.length}
+              </ThemedText>
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Búsqueda */}
@@ -305,6 +333,11 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 16,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -313,6 +346,19 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
+  },
+  favoritesCounter: {
+    backgroundColor: '#e2363622',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e23636',
+  },
+  favoritesCounterText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#e23636',
   },
   searchSection: {
     paddingHorizontal: 20,
@@ -382,6 +428,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+    position: 'relative',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  favoriteIcon: {
+    fontSize: 20,
+  },
+  heroCardContent: {
+    flex: 1,
   },
   heroImage: {
     width: '100%',
