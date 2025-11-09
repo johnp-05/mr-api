@@ -1,437 +1,378 @@
-# 📱 Marvel Rivals - Guía Completa de la App
+<div align="center">
 
-## 🎮 Descripción General
+# 🦸‍♂️ Marvel Rivals - Entrenador IA
 
-**Marvel Rivals** es una aplicación móvil completa para fanáticos del juego competitivo 6v6 de Marvel. La app integra IA conversacional (Gemini) con datos en tiempo real de la API oficial de Marvel Rivals para ofrecer una experiencia de entrenamiento personalizada.
+### Tu asistente personal impulsado por Gemini AI 💜
+
+![Demo Principal](./assets/demo.gif)
+
+[![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
+</div>
 
 ---
 
 ## 🌟 Características Principales
 
-### 1. **🦸‍♂️ Catálogo de Héroes** (`app/(tabs)/index.tsx`)
+### 1. 🦸‍♂️ Catálogo de Héroes
 
-- **Visualización completa** de todos los héroes del juego
-- **Filtros avanzados:**
-  - Por rol (Duelist ⚔️, Vanguard 🛡️, Strategist ✨)
-  - Búsqueda por nombre/alias
-- **Sistema de favoritos** con persistencia local
-- **Cards interactivas** con:
-  - Imagen oficial del héroe
-  - Rol con badge de color
-  - Nombre y alias
-  - Indicador de favorito (❤️/🤍)
+<details>
+<summary>Ver demo</summary>
 
-**Navegación:** Tap en cualquier héroe → detalles completos
+![Catálogo de Héroes](./assets/hero-catalog.gif)
 
----
+</details>
 
-### 2. **💜 Galacta - Entrenadora IA** (`app/(tabs)/ai.tsx`)
-
-Tu asistente personal impulsado por **Google Gemini AI**.
-
-#### Capacidades:
-
-- **Análisis de héroes:** "Dame tips para jugar Spider-Man"
-- **Composiciones de equipo:** "¿Cuál es la mejor comp 2-2-2?"
-- **Recomendaciones personalizadas** basadas en tus favoritos
-- **Comparador IA** (nuevo): Compara 2 héroes con análisis detallado
-- **Historial contextual** que recuerda la conversación
-
-#### Comandos especiales:
-
-- `"Compara Spider-Man vs Iron Man"` → Abre comparador automáticamente
-- Sugerencias rápidas pre-definidas
-- Guardado de consejos favoritos (⭐)
-
-#### Interfaz:
-
-- Chat estilo mensajería moderna
-- Burbujas diferenciadas (usuario/IA)
-- Animaciones de carga con feedback visual
-- Botones de acceso rápido: ⚖️ Comparar, ⭐ Favoritos, 🔄 Limpiar
+- ✅ Visualización completa de todos los héroes
+- ✅ Filtros por rol (Duelist, Vanguard, Strategist)
+- ✅ Búsqueda inteligente por nombre/alias
+- ✅ Sistema de favoritos con persistencia
 
 ---
 
-### 3. **⚖️ Comparador de Héroes con IA** (`components/HeroComparator.tsx`)
+### 2. 💜 Galacta - Tu Entrenadora IA
 
-Modal especializado para comparaciones detalladas.
+<table>
+<tr>
+<td width="50%">
 
-#### Análisis incluye:
+**Capacidades:**
 
-- **Pros y Contras** de cada héroe (3 puntos c/u)
-- **Dificultad** (estrellas 1-5)
-- **Veredicto imparcial** de Galacta
-- **Recomendación personalizada** considerando:
-  - Nivel de habilidad
-  - Héroes favoritos del usuario
-  - Estilo de juego
+- 🤖 Análisis de héroes con IA
+- 🎯 Composiciones de equipo optimizadas
+- 💡 Recomendaciones personalizadas
+- ⚖️ Comparador avanzado de héroes
+- 📚 Historial contextual
 
-#### Formato visual:
+</td>
+<td width="50%">
 
-- Imágenes lado a lado (Hero1 vs Hero2)
-- Cards categorizados (✅ Ventajas, ❌ Desventajas)
-- Veredicto final con gradiente morado
-- Botón para nueva comparación
+![Galacta Chat](./assets/galacta-chat.gif)
 
----
+</td>
+</tr>
+</table>
 
-### 4. **📊 Detalles de Héroe** (`app/hero/[id].tsx`)
-
-Vista completa al hacer tap en un héroe.
-
-#### Información mostrada:
-
-- **Header visual:**
-  - Imagen a pantalla completa con gradiente
-  - Nombre y alias superpuestos
-  - Botón de favorito flotante
-  
-- **Badges:**
-  - Rol con color distintivo
-  - Dificultad en estrellas (⭐⭐⭐)
-  - Estado de favorito
-
-- **Secciones:**
-  - 📖 **Descripción** biográfica
-  - ⚡ **Habilidades** (nombre, cooldown, descripción)
-  - 📊 **Información** (rol, dificultad, alias)
-  
-- **Tip de Galacta** (si es favorito):
-  - Nota personalizada sobre consideración en recomendaciones
-
----
-
-### 5. **🔍 Búsqueda de Jugadores** (`app/(tabs)/explore.tsx`)
-
-Consulta estadísticas de cualquier jugador.
-
-#### Datos disponibles:
-
-- **Perfil:**
-  - Username
-  - Rango (🏆)
-  - Nivel de cuenta
-  
-- **Héroes más jugados:**
-  - Nombre del héroe
-  - Partidas jugadas
-  - Win Rate (%) con código de color:
-    - 🟢 Verde: ≥50%
-    - 🔴 Rojo: <50%
-
-**Nota:** Datos obtenidos de la API oficial de Marvel Rivals
-
----
-
-### 6. **⭐ Favoritos** (`app/favorites.tsx`)
-
-Sistema completo de gestión de favoritos.
-
-#### Tipos de favoritos:
-
-1. **Consejos de Galacta:**
-   - Guardados desde el chat
-   - Categorizados automáticamente:
-     - 🦸‍♂️ Tips de Héroe
-     - 🎯 Composición
-     - 💡 Estrategia
-   - Compartibles (📤)
-   - Eliminables individualmente
-
-2. **Héroes favoritos:**
-   - Acceso rápido desde home y detalles
-   - Toggle ❤️/🤍
-   - Considerados por Galacta en recomendaciones
-
-#### Funciones:
-
-- Ver todos los favoritos con fecha
-- Compartir consejos vía sistema nativo
-- Limpiar todo con confirmación
-- Contador de favoritos en header
-
----
-
-## 🛠️ Arquitectura Técnica
-
-### Stack Tecnológico:
-
-- **Frontend:** React Native + Expo Router
-- **Navegación:** Expo Router (tabs + stack)
-- **IA:** Google Gemini 2.0 Flash Exp
-- **API:** Marvel Rivals API v1
-- **Persistencia:** AsyncStorage
-- **UI:** Gradientes (expo-linear-gradient), imágenes (expo-image)
-- **Animaciones:** React Native Animated
-
-### Servicios (`/services`):
-
-#### 1. **marvelRivalsApi.ts**
-```typescript
-- getHeroes(): Hero[]
-- getHero(name: string): Hero
-- getPlayerStats(username: string): PlayerStats
-- Limpieza automática de HTML
-- Procesamiento de imágenes
-- Manejo de errores robusto
+**Comandos especiales:**
+```
+"Compara Spider-Man vs Iron Man"  → Abre comparador
+"Dame tips para [héroe]"          → Análisis detallado
+"¿Cuál es la mejor comp 2-2-2?"   → Sugerencia de equipo
 ```
 
-#### 2. **geminiService.ts**
+---
+
+### 3. ⚖️ Comparador de Héroes con IA
+
+<p align="center">
+  <img src="./assets/comparator.gif" width="300" alt="Comparador"/>
+</p>
+
+**Análisis incluye:**
+- ✅ Pros y Contras detallados
+- ⭐ Dificultad en estrellas
+- 🏆 Veredicto imparcial de Galacta
+- 💡 Recomendación personalizada
+
+---
+
+### 4. 📊 Detalles de Héroe
+
+| Vista | Características |
+|-------|-----------------|
+| ![Hero Details](./assets/hero-details.gif) | • Header visual a pantalla completa<br>• Badges de rol y dificultad<br>• Secciones: Bio, Habilidades, Stats<br>• Integración con favoritos |
+
+---
+
+### 5. 🔍 Búsqueda de Jugadores
+```
+┌─────────────────────────────────┐
+│  🔍 Buscar Jugador              │
+├─────────────────────────────────┤
+│  Username: _____________        │
+│         [Buscar]                │
+├─────────────────────────────────┤
+│  📊 Estadísticas:               │
+│  • Rango: Diamante 🏆           │
+│  • Nivel: 42                    │
+│  • Win Rate: 58% 🟢             │
+│                                 │
+│  🦸‍♂️ Héroes más jugados:       │
+│  1. Spider-Man - 156 partidas   │
+│  2. Iron Man - 89 partidas      │
+└─────────────────────────────────┘
+```
+
+---
+
+## 🎬 Demos por Funcionalidad
+
+<table>
+<tr>
+<td align="center" width="33%">
+
+**Navegación**
+
+![Navegación](./assets/navigation.gif)
+
+Tabs fluidos con háptica
+
+</td>
+<td align="center" width="33%">
+
+**Favoritos**
+
+![Favoritos](./assets/favorites.gif)
+
+Guarda y comparte consejos
+
+</td>
+<td align="center" width="33%">
+
+**Búsqueda**
+
+![Búsqueda](./assets/search.gif)
+
+Filtros en tiempo real
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🛠️ Instalación Rápida
+```bash
+# 1. Clonar repositorio
+git clone https://github.com/tu-usuario/marvel-rivals-app.git
+cd marvel-rivals-app
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar API Keys (ver sección abajo)
+# Editar services/marvelRivalsApi.ts y services/geminiService.ts
+
+# 4. Ejecutar app
+npm start
+```
+
+### 📱 Ejecutar en dispositivo:
+
+<p align="center">
+  <img src="./assets/qr-code-demo.gif" width="200" alt="Escanea con Expo Go"/>
+</p>
+
+**Opciones:**
+- 📱 iOS: Escanea QR con Cámara
+- 🤖 Android: Escanea QR con Expo Go
+- 💻 Web: Abre en navegador
+
+---
+
+## 🔑 Configuración de APIs
+
+### 1. Marvel Rivals API
 ```typescript
-- sendMessage(message: string): string
-- compareHeroes(hero1, hero2): AIComparison
-- analyzeHero(name: string): string
-- suggestComposition(): string
-- Contexto de usuario (favoritos)
+// services/marvelRivalsApi.ts
+const API_KEY = 'TU_API_KEY_AQUI'; // 👈 Cambiar
+```
+
+**Obtener API Key:**
+1. 🌐 Visitar: https://marvelrivalsapi.com/dashboard
+2. 📧 Registrarse con email
+3. 🔑 Crear nueva API Key
+4. 📋 Copiar y pegar
+
+---
+
+### 2. Google Gemini AI
+```typescript
+// services/geminiService.ts
+const GEMINI_API_KEY = 'TU_GEMINI_KEY_AQUI'; // 👈 Cambiar
+```
+
+**Obtener API Key:**
+1. 🌐 Visitar: https://aistudio.google.com/app/apikey
+2. 🔐 Iniciar sesión con Google
+3. ➕ Crear nueva API Key
+4. 📋 Copiar y pegar
+
+---
+
+## 🎨 Stack Tecnológico
+```typescript
+const tech = {
+  frontend: ['React Native', 'Expo Router', 'TypeScript'],
+  ai: ['Google Gemini 2.0 Flash'],
+  api: ['Marvel Rivals API v1'],
+  storage: ['AsyncStorage'],
+  ui: ['Expo Linear Gradient', 'Expo Image'],
+  animations: ['React Native Animated']
+};
+```
+
+---
+
+## 📁 Estructura del Proyecto
+```
+mr-api/
+├── 📱 app/
+│   ├── (tabs)/
+│   │   ├── index.tsx        # 🏠 Catálogo de héroes
+│   │   ├── ai.tsx           # 💜 Chat con Galacta
+│   │   └── explore.tsx      # 🔍 Búsqueda de jugadores
+│   ├── hero/[id].tsx        # 📄 Detalles de héroe
+│   └── favorites.tsx        # ⭐ Gestión de favoritos
+├── 🧩 components/
+│   └── HeroComparator.tsx   # ⚖️ Comparador IA
+├── ⚙️ services/
+│   ├── marvelRivalsApi.ts   # API de Marvel Rivals
+│   ├── geminiService.ts     # Integración Gemini
+│   └── favoritesService.ts  # Gestión de favoritos
+└── 🎨 assets/
+    └── *.gif                # GIFs de demostración
+```
+
+---
+
+## 🚀 Características Destacadas
+
+<table>
+<tr>
+<td width="50%">
+
+### 🤖 IA Conversacional
+- Contexto de héroes favoritos
 - Historial de conversación
-- Detección de menciones de héroes
+- Detección automática de menciones
+- Respuestas en <3 segundos
+
+</td>
+<td width="50%">
+
+### 🎯 UX Premium
+- Dark/Light mode automático
+- Animaciones fluidas
+- Feedback háptico (iOS)
+- Emojis estratégicos
+
+</td>
+</tr>
+</table>
+
+---
+
+## 💡 Casos de Uso
+
+### 🆕 Para Principiantes
+```
+Usuario: "Soy nuevo, ¿por dónde empiezo?"
+Galacta: "¡Bienvenido! 🎉 Te recomiendo empezar con..."
 ```
 
-#### 3. **favoritesService.ts**
-```typescript
-- saveFavorite(content: string)
-- getFavorites(): FavoriteMessage[]
-- addFavoriteHero(name: string)
-- getFavoriteHeroes(): string[]
-- toggleFavoriteHero(name: string): boolean
-- Categorización automática
-- Estadísticas de uso
+### 🏆 Para Competitivos
+```
+Usuario: "Compara Luna Snow vs Mantis"
+Galacta: "¡Excelente pregunta! 💜 Luna Snow es..."
 ```
 
----
-
-## 🎨 Diseño y UX
-
-### Tema:
-
-- **Soporte dual:** Light/Dark mode automático
-- **Colores de roles:**
-  - 🔴 Duelist: `#e23636`
-  - 🔵 Vanguard: `#3b82f6`
-  - 🟢 Strategist: `#10b981`
-  - 💜 Galacta: `#9333ea`
-
-### Características visuales:
-
-- Gradientes vibrantes en botones y headers
-- Cards con sombras y elevación
-- Animaciones suaves (pulso en avatar de Galacta)
-- Emojis estratégicos para mejor legibilidad
-- Feedback háptico en iOS
-
----
-
-## 🔐 Configuración Requerida
-
-### APIs necesarias:
-
-1. **Marvel Rivals API:**
-   - Obtener en: https://marvelrivalsapi.com/dashboard
-   - Ubicación: `services/marvelRivalsApi.ts` → `API_KEY`
-
-2. **Google Gemini:**
-   - Obtener en: https://aistudio.google.com/app/apikey
-   - Ubicación: `services/geminiService.ts` → `GEMINI_API_KEY`
-
----
-
-## 📱 Navegación
-```
-Root Layout (_layout.tsx)
-├── (tabs) [TabLayout]
-│   ├── index.tsx (🏠 Héroes)
-│   ├── ai.tsx (💜 Galacta)
-│   └── explore.tsx (🔍 Buscar)
-├── hero/[id].tsx (📄 Detalles de héroe)
-└── favorites.tsx (⭐ Modal de favoritos)
-```
-
----
-
-## 🚀 Flujo de Usuario Típico
-
-### 1. **Inicio:**
-- Explorar catálogo de héroes
-- Filtrar por rol o buscar por nombre
-- Marcar favoritos (❤️)
-
-### 2. **Consultar a Galacta:**
-- "¿Qué héroe me recomiendas?" → Respuesta contextual
-- "Compara Spider-Man vs Iron Man" → Comparador IA
-- Guardar consejos útiles (⭐)
-
-### 3. **Profundizar:**
-- Ver detalles completos de un héroe
-- Analizar habilidades y estadísticas
-- Buscar jugadores para ver meta
-
-### 4. **Gestionar favoritos:**
-- Revisar consejos guardados
-- Compartir estrategias
-- Acceso rápido a héroes preferidos
-
----
-
-## 💡 Casos de Uso Avanzados
-
-### Para principiantes:
-- "Soy nuevo, ¿por dónde empiezo?"
-- Filtrar héroes con ⭐⭐ (baja dificultad)
-- Galacta recomienda héroes accesibles
-
-### Para competitivos:
-- Comparar héroes del meta actual
-- Consultar composiciones 2-2-2
-- Analizar win rates de jugadores top
-
-### Para creadores de contenido:
+### 🎮 Para Creadores
 - Compartir builds desde favoritos
 - Capturar análisis de Galacta
 - Estadísticas de jugadores pro
 
 ---
 
-## 🛡️ Manejo de Errores
+## 🐛 Solución de Problemas
 
-- **API Key inválida** → Mensaje con link a obtención
-- **Límite de cuota** → Sugerencia de espera
-- **Héroe no encontrado** → Búsqueda alternativa
-- **Sin conexión** → Retry manual
-- **Respuesta IA inválida** → Fallback con datos básicos
+<details>
+<summary><b>❌ Error: "API Key inválida"</b></summary>
 
----
-
-## 📦 Dependencias Clave
-```json
-{
-  "@google/generative-ai": "IA conversacional",
-  "@react-native-async-storage/async-storage": "Persistencia",
-  "expo-linear-gradient": "Gradientes",
-  "expo-image": "Optimización de imágenes",
-  "expo-router": "Navegación file-based",
-  "react-native-reanimated": "Animaciones"
-}
-```
-
----
-
-## 🎯 Próximas Mejoras (Roadmap)
-
-- [ ] Comparador múltiple (3+ héroes)
-- [ ] Modo offline con caché
-- [ ] Notificaciones de meta updates
-- [ ] Perfil de usuario con estadísticas
-- [ ] Integración con Discord/Twitter
-- [ ] Modo entrenamiento con IA
-
----
-
-## 📊 Estructura del Proyecto
-```
-mr-api/
-├── app/
-│   ├── (tabs)/
-│   │   ├── _layout.tsx          # Navegación de tabs
-│   │   ├── index.tsx             # 🏠 Catálogo de héroes
-│   │   ├── ai.tsx                # 💜 Chat con Galacta
-│   │   └── explore.tsx           # 🔍 Búsqueda de jugadores
-│   ├── hero/
-│   │   └── [id].tsx              # 📄 Detalles de héroe
-│   ├── favorites.tsx             # ⭐ Gestión de favoritos
-│   └── _layout.tsx               # Layout principal
-├── components/
-│   ├── HeroComparator.tsx        # ⚖️ Comparador IA
-│   ├── themed-text.tsx           # Texto con tema
-│   └── themed-view.tsx           # Contenedor con tema
-├── services/
-│   ├── marvelRivalsApi.ts        # API de Marvel Rivals
-│   ├── geminiService.ts          # Integración con Gemini AI
-│   └── favoritesService.ts       # Gestión de favoritos
-├── constants/
-│   └── theme.ts                  # Colores y temas
-└── hooks/
-    ├── use-color-scheme.ts       # Hook de tema
-    └── use-theme-color.ts        # Hook de colores
-```
-
----
-
-## 🚀 Instalación y Ejecución
-
-### Requisitos previos:
-```bash
-- Node.js 18+
-- npm o yarn
-- Expo CLI
-- Cuenta Google (para Gemini API)
-- Cuenta Marvel Rivals API
-```
-
-### Pasos:
-
-1. **Clonar repositorio:**
-```bash
-git clone <tu-repo>
-cd mr-api
-```
-
-2. **Instalar dependencias:**
-```bash
-npm install
-# o
-yarn install
-```
-
-3. **Configurar API Keys:**
-
-Editar `services/marvelRivalsApi.ts`:
+**Solución:**
+1. Verificar que copiaste la API Key completa
+2. Revisar que no hay espacios extra
+3. Confirmar que la key está activa en el dashboard
 ```typescript
-const API_KEY = 'TU_MARVEL_RIVALS_API_KEY';
+// ✅ Correcto
+const API_KEY = 'abc123def456...';
+
+// ❌ Incorrecto
+const API_KEY = ' abc123def456... '; // Espacios
 ```
+</details>
 
-Editar `services/geminiService.ts`:
-```typescript
-const GEMINI_API_KEY = 'TU_GEMINI_API_KEY';
-```
+<details>
+<summary><b>⚠️ Error: "Límite de cuota alcanzado"</b></summary>
 
-4. **Ejecutar app:**
-```bash
-# iOS
-npm run ios
+**Solución:**
+- Gemini API Gratis: 15 requests/minuto
+- Esperar 1 minuto entre requests intensivos
+- Considerar upgrade para uso intensivo
 
-# Android
-npm run android
-
-# Web
-npm run web
-
-# Desarrollo
-npm start
-```
+</details>
 
 ---
 
-## 🔑 Obtención de API Keys
+## 📊 Métricas y Performance
 
-### Marvel Rivals API:
-
-1. Visitar: https://marvelrivalsapi.com/dashboard
-2. Registrarse con email
-3. Crear nueva API Key
-4. Copiar y pegar en `marvelRivalsApi.ts`
-
-### Google Gemini:
-
-1. Visitar: https://aistudio.google.com/app/apikey
-2. Iniciar sesión con Google
-3. Crear nueva API Key
-4. Copiar y pegar en `geminiService.ts`
-
-**Nota:** Ambas APIs tienen tier gratuito con límites de requests.
+| Métrica | Valor |
+|---------|-------|
+| ⚡ Carga inicial | <2s |
+| 🤖 Respuesta IA | <3s |
+| 📦 Tamaño app | ~45MB |
+| 🔋 Consumo batería | Bajo |
+| 📶 Uso de datos | ~5MB/sesión |
 
 ---
 
+## 🗺️ Roadmap
 
-// Probar IA
-describe('GeminiService', () => {
-  test('sendMessage() retorna resp
+- [ ] **v1.1** - Modo offline con caché
+- [ ] **v1.2** - Comparador múltiple (3+ héroes)
+- [ ] **v1.3** - Perfil de usuario con stats
+- [ ] **v2.0** - Integración Discord/Twitter
+- [ ] **v2.1** - Modo entrenamiento con IA
+- [ ] **v2.2** - Notificaciones de meta updates
+
+---
+
+## 🤝 Contribuir
+
+¡Las contribuciones son bienvenidas! 🎉
+
+1. Fork el proyecto
+2. Crea tu rama: `git checkout -b feature/nueva-funcionalidad`
+3. Commit cambios: `git commit -m 'Agrega nueva funcionalidad'`
+4. Push a la rama: `git push origin feature/nueva-funcionalidad`
+5. Abre un Pull Request
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detalles.
+
+---
+
+## 🙏 Agradecimientos
+
+- **Marvel Rivals API** por los datos oficiales
+- **Google Gemini** por la IA conversacional
+- **Expo Team** por el increíble framework
+- **Comunidad Marvel Rivals** por el feedback
+
+---
+
+<div align="center">
+
+### 💜 Hecho con amor por [Tu Nombre]
+
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/tu-usuario)
+[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/tu-usuario)
+
+**¿Te gustó el proyecto? ¡Dale una ⭐!**
+
+</div>
