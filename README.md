@@ -82,7 +82,7 @@
 
 | Vista | Características |
 |-------|-----------------|
-| ![Hero Details](./assets/hero-details.gif) | • Header visual a pantalla completa<br>• Badges de rol y dificultad<br>• Secciones: Bio, Habilidades, Stats<br>• Integración con favoritos |
+| ![Hero Details](./assets/hero-catalog.gif) | • Header visual a pantalla completa<br>• Badges de rol y dificultad<br>• Secciones: Bio, Habilidades, Stats<br>• Integración con favoritos |
 
 ---
 
@@ -368,7 +368,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 <div align="center">
 
-### 💜 Hecho con amor por [Tu Nombre]
+### 💜 Hecho con amor por John Pambi 🗣️🔥
 
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/tu-usuario)
 [![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/tu-usuario)
