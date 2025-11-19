@@ -107,7 +107,7 @@ export default function HeroComparator({
       const comparison = await GeminiService.compareHeroes(h1, h2);
       setAiComparison(comparison);
 
-    } catch (err) {
+    } catch {
       setError('No se encontró uno o ambos héroes');
       setHero1(null);
       setHero2(null);

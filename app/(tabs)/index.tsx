@@ -1,5 +1,5 @@
 // app/(tabs)/index.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   StyleSheet, 
   FlatList, 
@@ -25,7 +25,6 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
-  const backgroundColor = useThemeColor({}, 'background');
   const cardColor = useThemeColor({ light: '#ffffff', dark: '#1c1c1e' }, 'background');
   const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#333' }, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -35,9 +34,27 @@ export default function HomeScreen() {
     loadFavorites();
   }, []);
 
+  const filterHeroes = useCallback(() => {
+    let filtered = heroes;
+
+    if (selectedRole) {
+      filtered = filtered.filter(hero => hero.role === selectedRole);
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(hero => 
+        hero.name.toLowerCase().includes(query) ||
+        hero.alias?.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredHeroes(filtered);
+  }, [heroes, selectedRole, searchQuery]);
+
   useEffect(() => {
     filterHeroes();
-  }, [searchQuery, selectedRole, heroes]);
+  }, [filterHeroes]);
 
   const loadHeroes = async () => {
     try {
@@ -70,24 +87,6 @@ export default function HomeScreen() {
       await FavoritesService.addFavoriteHero(heroName);
       setFavoriteHeroes(prev => [...prev, heroName]);
     }
-  };
-
-  const filterHeroes = () => {
-    let filtered = heroes;
-
-    if (selectedRole) {
-      filtered = filtered.filter(hero => hero.role === selectedRole);
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(hero => 
-        hero.name.toLowerCase().includes(query) ||
-        hero.alias?.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredHeroes(filtered);
   };
 
   const getRoleConfig = (role: string) => {

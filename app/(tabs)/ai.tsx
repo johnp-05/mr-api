@@ -1,6 +1,5 @@
 // app/(tabs)/ai.tsx
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import GeminiService from '@/services/geminiService';
 import FavoritesService from '@/services/favoritesService';
@@ -62,7 +61,7 @@ export default function AIChatScreen() {
         }),
       ])
     ).start();
-  }, []);
+  }, [pulseAnim]);
 
   useEffect(() => {
     const welcomeMessage: Message = {
@@ -151,7 +150,7 @@ export default function AIChatScreen() {
         'Consejo guardado en favoritos',
         [{ text: 'Ver Favoritos', onPress: () => router.push('/favorites' as any) }, { text: 'OK' }]
       );
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'No se pudo guardar el favorito');
     }
   };

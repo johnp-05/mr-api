@@ -17,7 +17,6 @@ import FavoritesService, { FavoriteMessage } from '@/services/favoritesService';
 
 export default function FavoritesScreen() {
   const [favorites, setFavorites] = useState<FavoriteMessage[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const backgroundColor = useThemeColor({}, 'background');
   const cardColor = useThemeColor({ light: '#ffffff', dark: '#1c1c1e' }, 'background');
@@ -27,10 +26,8 @@ export default function FavoritesScreen() {
   }, []);
 
   const loadFavorites = async () => {
-    setLoading(true);
     const data = await FavoritesService.getFavorites();
     setFavorites(data);
-    setLoading(false);
   };
 
   const deleteFavorite = async (id: string) => {
