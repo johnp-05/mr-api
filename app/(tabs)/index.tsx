@@ -115,6 +115,8 @@ export default function HomeScreen() {
           style={styles.favoriteButton}
           onPress={() => toggleFavorite(hero)}
           activeOpacity={0.7}
+          accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          accessibilityRole="button"
         >
           <ThemedText style={styles.favoriteIcon}>
             {isFavorite ? '❤️' : '🤍'}
@@ -126,6 +128,8 @@ export default function HomeScreen() {
           style={styles.heroCardContent}
           onPress={() => router.push(`/hero/${hero.id}`)}
           activeOpacity={0.7}
+          accessibilityLabel={`Ver detalles de ${hero.alias || hero.name}`}
+          accessibilityRole="button"
         >
           {hero.imageUrl ? (
             <Image
@@ -174,7 +178,12 @@ export default function HomeScreen() {
       <ThemedView style={styles.centerContainer}>
         <ThemedText style={styles.errorIcon}>❌</ThemedText>
         <ThemedText style={styles.errorText}>{error}</ThemedText>
-        <TouchableOpacity style={styles.retryButton} onPress={loadHeroes}>
+        <TouchableOpacity 
+          style={styles.retryButton} 
+          onPress={loadHeroes}
+          accessibilityLabel="Reintentar cargar héroes"
+          accessibilityRole="button"
+        >
           <ThemedText style={styles.retryButtonText}>Reintentar</ThemedText>
         </TouchableOpacity>
       </ThemedView>

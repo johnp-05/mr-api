@@ -110,6 +110,8 @@ export default function HeroDetailScreen() {
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => router.back()}
+            accessibilityLabel="Volver a la lista de héroes"
+            accessibilityRole="button"
           >
             <ThemedText style={styles.backButtonText}>← Volver</ThemedText>
           </TouchableOpacity>
@@ -204,6 +206,8 @@ export default function HeroDetailScreen() {
                 isFavorite && styles.favoriteBadgeActive
               ]}
               onPress={toggleFavorite}
+              accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+              accessibilityRole="button"
             >
               <ThemedText style={styles.favoriteText}>
                 {isFavorite ? '❤️ Favorito' : '🤍 Agregar'}
@@ -333,6 +337,8 @@ export default function HeroDetailScreen() {
           <TouchableOpacity 
             style={[styles.fullBackButton, { backgroundColor: roleConfig.color }]}
             onPress={() => router.back()}
+            accessibilityLabel="Volver a la lista de héroes"
+            accessibilityRole="button"
           >
             <ThemedText style={styles.fullBackButtonText}>
               ← Volver a Héroes

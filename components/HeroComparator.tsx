@@ -143,7 +143,12 @@ export default function HeroComparator({
                 Análisis con Galacta 💜
               </ThemedText>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity 
+              onPress={onClose} 
+              style={styles.closeButton}
+              accessibilityLabel="Cerrar comparador"
+              accessibilityRole="button"
+            >
               <ThemedText style={styles.closeButtonText}>✕</ThemedText>
             </TouchableOpacity>
           </View>
@@ -165,6 +170,8 @@ export default function HeroComparator({
                   placeholderTextColor="#999"
                   value={hero1Name}
                   onChangeText={setHero1Name}
+                  accessibilityLabel="Nombre del primer héroe"
+                  accessibilityHint="Ingresa el nombre del primer héroe a comparar"
                 />
               </View>
 
@@ -178,6 +185,8 @@ export default function HeroComparator({
                   placeholderTextColor="#999"
                   value={hero2Name}
                   onChangeText={setHero2Name}
+                  accessibilityLabel="Nombre del segundo héroe"
+                  accessibilityHint="Ingresa el nombre del segundo héroe a comparar"
                 />
               </View>
 
@@ -191,6 +200,9 @@ export default function HeroComparator({
                 style={styles.compareButtonWrapper}
                 onPress={compareHeroes}
                 disabled={loading}
+                accessibilityLabel="Comparar héroes con inteligencia artificial"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: loading }}
               >
                 <LinearGradient
                   colors={['#e23636', '#dc2626'] as const}
@@ -407,7 +419,12 @@ export default function HeroComparator({
               </View>
 
               {/* Reset Button */}
-              <TouchableOpacity style={styles.resetButtonWrapper} onPress={reset}>
+              <TouchableOpacity 
+                style={styles.resetButtonWrapper} 
+                onPress={reset}
+                accessibilityLabel="Comparar otros héroes"
+                accessibilityRole="button"
+              >
                 <LinearGradient
                   colors={['#ef4444', '#dc2626'] as const}
                   start={{ x: 0, y: 0 }}
