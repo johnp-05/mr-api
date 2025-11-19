@@ -1,12 +1,11 @@
 // app/hero/[id].tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   StyleSheet, 
   ScrollView, 
   ActivityIndicator,
   View,
-  TouchableOpacity,
-  Dimensions
+  TouchableOpacity
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
@@ -16,8 +15,6 @@ import { ThemedView } from '@/components/themed-view';
 import MarvelRivalsAPI, { Hero } from '@/services/marvelRivalsApi';
 import FavoritesService from '@/services/favoritesService';
 import { useThemeColor } from '@/hooks/use-theme-color';
-
-const { width } = Dimensions.get('window');
 
 export default function HeroDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,13 +26,7 @@ export default function HeroDetailScreen() {
   const backgroundColor = useThemeColor({}, 'background');
   const cardColor = useThemeColor({ light: '#ffffff', dark: '#1c1c1e' }, 'background');
 
-  useEffect(() => {
-    if (id) {
-      loadHero();
-    }
-  }, [id]);
-
-  const loadHero = async () => {
+  const loadHero = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -51,7 +42,13 @@ export default function HeroDetailScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadHero();
+    }
+  }, [id, loadHero]);
 
   const toggleFavorite = async () => {
     if (!hero) return;
@@ -113,6 +110,8 @@ export default function HeroDetailScreen() {
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => router.back()}
+            accessibilityLabel="Volver a la lista de héroes"
+            accessibilityRole="button"
           >
             <ThemedText style={styles.backButtonText}>← Volver</ThemedText>
           </TouchableOpacity>
@@ -180,7 +179,7 @@ export default function HeroDetailScreen() {
             </ThemedText>
             {hero.name && hero.alias && (
               <ThemedText style={styles.heroAlias}>
-                "{hero.name}"
+                &quot;{hero.name}&quot;
               </ThemedText>
             )}
           </View>
@@ -207,6 +206,8 @@ export default function HeroDetailScreen() {
                 isFavorite && styles.favoriteBadgeActive
               ]}
               onPress={toggleFavorite}
+              accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+              accessibilityRole="button"
             >
               <ThemedText style={styles.favoriteText}>
                 {isFavorite ? '❤️ Favorito' : '🤍 Agregar'}
@@ -336,6 +337,8 @@ export default function HeroDetailScreen() {
           <TouchableOpacity 
             style={[styles.fullBackButton, { backgroundColor: roleConfig.color }]}
             onPress={() => router.back()}
+            accessibilityLabel="Volver a la lista de héroes"
+            accessibilityRole="button"
           >
             <ThemedText style={styles.fullBackButtonText}>
               ← Volver a Héroes

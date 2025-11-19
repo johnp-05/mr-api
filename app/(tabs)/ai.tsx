@@ -1,6 +1,5 @@
 // app/(tabs)/ai.tsx
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import GeminiService from '@/services/geminiService';
 import FavoritesService from '@/services/favoritesService';
@@ -62,7 +61,7 @@ export default function AIChatScreen() {
         }),
       ])
     ).start();
-  }, []);
+  }, [pulseAnim]);
 
   useEffect(() => {
     const welcomeMessage: Message = {
@@ -151,7 +150,7 @@ export default function AIChatScreen() {
         'Consejo guardado en favoritos',
         [{ text: 'Ver Favoritos', onPress: () => router.push('/favorites' as any) }, { text: 'OK' }]
       );
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'No se pudo guardar el favorito');
     }
   };
@@ -255,6 +254,8 @@ export default function AIChatScreen() {
             <TouchableOpacity
               style={styles.headerButton}
               onPress={() => setShowComparator(true)}
+              accessibilityLabel="Abrir comparador de héroes"
+              accessibilityRole="button"
             >
               <LinearGradient
                 colors={['#10b981', '#059669']}
@@ -269,6 +270,8 @@ export default function AIChatScreen() {
             <TouchableOpacity
               style={styles.headerButton}
               onPress={() => router.push('/favorites' as any)}
+              accessibilityLabel="Ver favoritos"
+              accessibilityRole="button"
             >
               <LinearGradient
                 colors={['#fbbf24', '#f59e0b']}
@@ -283,6 +286,8 @@ export default function AIChatScreen() {
             <TouchableOpacity
               style={styles.headerButton}
               onPress={clearChat}
+              accessibilityLabel="Limpiar chat"
+              accessibilityRole="button"
             >
               <LinearGradient
                 colors={['#ef4444', '#dc2626']}
@@ -370,6 +375,8 @@ export default function AIChatScreen() {
             multiline
             maxLength={500}
             editable={!loading}
+            accessibilityLabel="Campo de mensaje"
+            accessibilityHint="Escribe tu pregunta para Galacta"
           />
         </View>
         <TouchableOpacity
@@ -377,6 +384,9 @@ export default function AIChatScreen() {
           onPress={sendMessage}
           disabled={!inputText.trim() || loading}
           activeOpacity={0.8}
+          accessibilityLabel="Enviar mensaje"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !inputText.trim() || loading }}
         >
           <LinearGradient
             colors={

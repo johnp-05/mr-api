@@ -67,12 +67,17 @@ export default function ExploreScreen() {
             onSubmitEditing={searchPlayer}
             autoCapitalize="none"
             autoCorrect={false}
+            accessibilityLabel="Campo de nombre de usuario"
+            accessibilityHint="Ingresa el nombre del jugador a buscar"
           />
         </View>
         <TouchableOpacity
           style={styles.searchButton}
           onPress={searchPlayer}
           disabled={loading}
+          accessibilityLabel="Buscar jugador"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: loading }}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />

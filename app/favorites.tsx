@@ -17,7 +17,6 @@ import FavoritesService, { FavoriteMessage } from '@/services/favoritesService';
 
 export default function FavoritesScreen() {
   const [favorites, setFavorites] = useState<FavoriteMessage[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const backgroundColor = useThemeColor({}, 'background');
   const cardColor = useThemeColor({ light: '#ffffff', dark: '#1c1c1e' }, 'background');
@@ -27,10 +26,8 @@ export default function FavoritesScreen() {
   }, []);
 
   const loadFavorites = async () => {
-    setLoading(true);
     const data = await FavoritesService.getFavorites();
     setFavorites(data);
-    setLoading(false);
   };
 
   const deleteFavorite = async (id: string) => {
@@ -103,12 +100,16 @@ export default function FavoritesScreen() {
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => shareFavorite(item.content)}
+            accessibilityLabel="Compartir consejo"
+            accessibilityRole="button"
           >
             <ThemedText style={styles.actionButtonText}>📤 Compartir</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, styles.deleteButton]}
             onPress={() => deleteFavorite(item.id)}
+            accessibilityLabel="Eliminar consejo"
+            accessibilityRole="button"
           >
             <ThemedText style={[styles.actionButtonText, styles.deleteButtonText]}>
               🗑️ Eliminar
@@ -131,7 +132,12 @@ export default function FavoritesScreen() {
         <View style={styles.headerContent}>
           <ThemedText style={styles.headerTitle}>⭐ Favoritos</ThemedText>
           {favorites.length > 0 && (
-            <TouchableOpacity onPress={clearAll} style={styles.clearButton}>
+            <TouchableOpacity 
+              onPress={clearAll} 
+              style={styles.clearButton}
+              accessibilityLabel="Limpiar todos los favoritos"
+              accessibilityRole="button"
+            >
               <ThemedText style={styles.clearButtonText}>🧹 Limpiar</ThemedText>
             </TouchableOpacity>
           )}

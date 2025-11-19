@@ -1,5 +1,5 @@
 // app/(tabs)/index.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   StyleSheet, 
   FlatList, 
@@ -25,7 +25,6 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
-  const backgroundColor = useThemeColor({}, 'background');
   const cardColor = useThemeColor({ light: '#ffffff', dark: '#1c1c1e' }, 'background');
   const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#333' }, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -35,9 +34,27 @@ export default function HomeScreen() {
     loadFavorites();
   }, []);
 
+  const filterHeroes = useCallback(() => {
+    let filtered = heroes;
+
+    if (selectedRole) {
+      filtered = filtered.filter(hero => hero.role === selectedRole);
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(hero => 
+        hero.name.toLowerCase().includes(query) ||
+        hero.alias?.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredHeroes(filtered);
+  }, [heroes, selectedRole, searchQuery]);
+
   useEffect(() => {
     filterHeroes();
-  }, [searchQuery, selectedRole, heroes]);
+  }, [filterHeroes]);
 
   const loadHeroes = async () => {
     try {
@@ -72,24 +89,6 @@ export default function HomeScreen() {
     }
   };
 
-  const filterHeroes = () => {
-    let filtered = heroes;
-
-    if (selectedRole) {
-      filtered = filtered.filter(hero => hero.role === selectedRole);
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(hero => 
-        hero.name.toLowerCase().includes(query) ||
-        hero.alias?.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredHeroes(filtered);
-  };
-
   const getRoleConfig = (role: string) => {
     switch (role) {
       case 'Duelist': 
@@ -116,6 +115,8 @@ export default function HomeScreen() {
           style={styles.favoriteButton}
           onPress={() => toggleFavorite(hero)}
           activeOpacity={0.7}
+          accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          accessibilityRole="button"
         >
           <ThemedText style={styles.favoriteIcon}>
             {isFavorite ? '❤️' : '🤍'}
@@ -127,6 +128,8 @@ export default function HomeScreen() {
           style={styles.heroCardContent}
           onPress={() => router.push(`/hero/${hero.id}`)}
           activeOpacity={0.7}
+          accessibilityLabel={`Ver detalles de ${hero.alias || hero.name}`}
+          accessibilityRole="button"
         >
           {hero.imageUrl ? (
             <Image
@@ -175,7 +178,12 @@ export default function HomeScreen() {
       <ThemedView style={styles.centerContainer}>
         <ThemedText style={styles.errorIcon}>❌</ThemedText>
         <ThemedText style={styles.errorText}>{error}</ThemedText>
-        <TouchableOpacity style={styles.retryButton} onPress={loadHeroes}>
+        <TouchableOpacity 
+          style={styles.retryButton} 
+          onPress={loadHeroes}
+          accessibilityLabel="Reintentar cargar héroes"
+          accessibilityRole="button"
+        >
           <ThemedText style={styles.retryButtonText}>Reintentar</ThemedText>
         </TouchableOpacity>
       </ThemedView>
