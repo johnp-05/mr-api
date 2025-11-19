@@ -5,7 +5,7 @@ import FavoritesService from './favoritesService';
 
 // 🔑 API KEY CONFIGURADA
 // Obtén una gratis en: https://aistudio.google.com/app/apikey
-const GEMINI_API_KEY = 'AIzaSyAGZaBt3q4UgnhosgSiI7skyrxWMhGZuc4';
+const GEMINI_API_KEY = 'AIzaSyD5BJqxnS0b8Vm3U7jeqe9G-jWVXitNmIo';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -28,420 +28,274 @@ class GeminiService {
   private heroes: Hero[] = [];
   private chatHistory: ChatMessage[] = [];
   private lastRequestTime: number = 0;
+  private readonly MIN_REQUEST_INTERVAL = 8000; // 8 segundos entre requests
   private requestCount: number = 0;
-  
-  // Configuración de rate limiting
-  private MIN_REQUEST_INTERVAL = 8000; // 8 segundos entre requests
-  private MAX_REQUESTS_PER_MINUTE = 10; // Máximo 10 requests por minuto
+  private readonly MAX_REQUESTS_PER_MINUTE = 10;
 
   constructor() {
-    // Validar API Key
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === 'AIzaSyAGZaBt3q4UgnhosgSiI7skyrxWMhGZuc4') {
-      console.warn('⚠️ API Key no configurada. Gemini funcionará en modo offline.');
-      this.loadHeroes();
-      return;
-    }
+    this.initializeAPI();
+  }
 
+  /**
+   * Inicializar API de Gemini
+   */
+  private async initializeAPI() {
     try {
-      console.log('🔑 Inicializando Gemini...');
+      if (!GEMINI_API_KEY || GEMINI_API_KEY === 'AIzaSyD5BJqxnS0b8Vm3U7jeqe9G-jWVXitNmIo') {
+        console.error('⚠️ GEMINI_API_KEY no configurada');
+        return;
+      }
+
       this.genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
       this.model = this.genAI.getGenerativeModel({ 
         model: 'gemini-2.0-flash-exp',
         generationConfig: {
-          temperature: 0.7,
-          topK: 20,
-          topP: 0.8,
-          maxOutputTokens: 512,
+          temperature: 0.9,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
         }
       });
-      console.log('✅ Gemini inicializado correctamente');
+
+      // Cargar héroes
+      this.heroes = await MarvelRivalsAPI.getHeroes();
+      console.log('✅ Gemini inicializado con', this.heroes.length, 'héroes');
     } catch (error) {
       console.error('❌ Error inicializando Gemini:', error);
-      this.genAI = null;
-      this.model = null;
     }
-    
-    this.loadHeroes();
-  }
-
-  private async loadHeroes() {
-    try {
-      this.heroes = await MarvelRivalsAPI.getHeroes();
-      console.log('✅ Héroes cargados para IA:', this.heroes.length);
-    } catch (error) {
-      console.error('❌ Error cargando héroes:', error);
-    }
-  }
-
-  private getHeroInfo(heroName: string): Hero | null {
-    const searchName = heroName.toLowerCase().trim();
-    return this.heroes.find(h => 
-      h.name.toLowerCase().includes(searchName) ||
-      (h.alias && h.alias.toLowerCase().includes(searchName))
-    ) || null;
   }
 
   /**
-   * Rate limiting más estricto + contador de requests
+   * Verificar rate limiting
    */
-  private async waitForRateLimit(): Promise<void> {
+  private async waitIfNeeded() {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
-    
-    // Resetear contador cada minuto
-    if (timeSinceLastRequest > 60000) {
-      this.requestCount = 0;
-    }
 
-    // Verificar límite de requests por minuto
-    if (this.requestCount >= this.MAX_REQUESTS_PER_MINUTE) {
-      const waitTime = 60000 - timeSinceLastRequest;
-      console.log(`⏳ Límite alcanzado. Esperando ${Math.ceil(waitTime / 1000)}s...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-      this.requestCount = 0;
-    }
-    
-    // Rate limit entre requests
     if (timeSinceLastRequest < this.MIN_REQUEST_INTERVAL) {
       const waitTime = this.MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-      console.log(`⏳ Esperando ${Math.ceil(waitTime / 1000)}s para siguiente request...`);
+      console.log(`⏳ Esperando ${waitTime}ms para evitar rate limit...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
-    
-    this.requestCount++;
+
     this.lastRequestTime = Date.now();
+    this.requestCount++;
   }
 
   /**
-   * Respuesta offline cuando no hay API Key o hay error
+   * Crear contexto del sistema
    */
-  private getOfflineResponse(type: 'chat' | 'comparison' | 'analysis', context?: any): any {
-    console.log('📴 Modo offline activado');
-    
-    if (type === 'chat') {
-      const responses = [
-        "¡Hola! 💜 Soy Galacta, tu entrenadora de Marvel Rivals.\n\n⚠️ Actualmente estoy en modo offline (sin conexión a IA), pero puedo ayudarte con información básica sobre los héroes.\n\n¿Quieres que te cuente sobre algún héroe específico?",
-        "💜 ¡Hey! Por ahora funciono en modo básico.\n\nPuedo darte información sobre:\n⚔️ Roles de héroes\n🎯 Dificultades\n📊 Estadísticas generales\n\n¿Sobre qué héroe quieres saber?",
-        "¡Hola, campeón! 💜\n\n⚠️ Estoy en modo offline pero sigo aquí para ayudarte.\n\nPregúntame sobre cualquier héroe y te daré su información básica. 🦸‍♂️"
-      ];
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-
-    if (type === 'comparison' && context) {
-      const { hero1, hero2 } = context;
-      return {
-        hero1Pros: [
-          `${hero1.role} con ${hero1.difficultyStars}⭐ de dificultad`,
-          `Excelente en su rol de ${hero1.role}`,
-          `Múltiples habilidades tácticas`
-        ],
-        hero1Cons: [
-          `Requiere ${hero1.difficultyStars <= 2 ? 'algo de' : 'mucha'} práctica`,
-          `Vulnerable a counters específicos`,
-          `Depende de la composición del equipo`
-        ],
-        hero2Pros: [
-          `${hero2.role} con ${hero2.difficultyStars}⭐ de dificultad`,
-          `Gran versatilidad en combate`,
-          `Buen potencial de impacto`
-        ],
-        hero2Cons: [
-          `Curva de aprendizaje ${hero2.difficultyStars <= 2 ? 'moderada' : 'pronunciada'}`,
-          `Requiere coordinación con el equipo`,
-          `Situacional en algunos mapas`
-        ],
-        verdict: `⚠️ Modo offline: Ambos son excelentes opciones. ${hero1.alias || hero1.name} (${hero1.difficultyStars}⭐) vs ${hero2.alias || hero2.name} (${hero2.difficultyStars}⭐). 💜`,
-        recommendation: `${(hero1.difficultyStars || 3) <= (hero2.difficultyStars || 3) ? `Te recomiendo empezar con ${hero1.alias || hero1.name} por su dificultad más accesible.` : `${hero2.alias || hero2.name} puede ser más fácil de aprender.`} ¡Ambos son geniales! 🎮✨`
-      };
-    }
-
-    return "⚠️ Modo offline activo. Configura tu API Key de Gemini para activar todas las funciones IA.";
-  }
-
-  /**
-   * Obtener contexto del usuario (favoritos, historial)
-   */
-  private async getUserContext(): Promise<string> {
+  private async getSystemContext(): Promise<string> {
     const favoriteHeroes = await FavoritesService.getFavoriteHeroes();
     
-    if (favoriteHeroes.length === 0) {
-      return '';
+    let context = `Eres Galacta 💜, la entrenadora personal de IA para Marvel Rivals.
+
+PERSONALIDAD:
+- Amigable, motivadora y experta en el juego
+- Usas emojis estratégicamente (🦸‍♂️⚔️🎯💡🔥✨)
+- Respuestas claras, concisas y útiles
+- Animas al jugador a mejorar
+
+REGLAS:
+1. Responde SOLO sobre Marvel Rivals (héroes, estrategias, composiciones)
+2. Si te preguntan otra cosa, redirige al tema del juego
+3. Usa markdown para listas y énfasis
+4. Máximo 3-4 párrafos por respuesta
+
+HÉROES DISPONIBLES (${this.heroes.length}):
+${this.heroes.slice(0, 10).map(h => `- ${h.alias || h.name} (${h.role})`).join('\n')}
+... y ${this.heroes.length - 10} más.`;
+
+    if (favoriteHeroes.length > 0) {
+      context += `\n\n🎯 HÉROES FAVORITOS DEL USUARIO: ${favoriteHeroes.join(', ')}
+- Considera estos héroes en tus recomendaciones
+- El usuario tiene interés especial en ellos`;
     }
 
-    return `\n\n**HÉROES FAVORITOS DEL USUARIO:** ${favoriteHeroes.join(', ')}\n(Considera estos al hacer recomendaciones)`;
+    return context;
   }
 
-  private async getSystemContext(): Promise<string> {
-    const heroSummary = this.heroes
-      .slice(0, 20)
-      .map(h => `${h.name} (${h.role}, ${h.difficultyStars}⭐)`)
-      .join(', ');
-
-    const userContext = await this.getUserContext();
-
-    return `Eres Galacta 💜, entrenadora experta de Marvel Rivals.
-
-**ROLES:**
-- Duelist ⚔️: Daño
-- Vanguard 🛡️: Tanque
-- Strategist ✨: Soporte
-
-**HÉROES:** ${heroSummary}...
-${userContext}
-
-**INSTRUCCIONES:**
-1. Responde en 2-3 párrafos MAX
-2. Usa emojis
-3. Menciona rol con emoji
-4. Sé directa y clara
-
-Responde en español.`;
-  }
-
+  /**
+   * Enviar mensaje a Gemini
+   */
   async sendMessage(userMessage: string): Promise<string> {
-    // Modo offline si no hay modelo
-    if (!this.model || !this.genAI) {
-      const offlineResponse = this.getOfflineResponse('chat');
-      
-      this.chatHistory.push({
-        role: 'user',
-        content: userMessage,
-        timestamp: new Date(),
-      });
-      
-      this.chatHistory.push({
-        role: 'assistant',
-        content: offlineResponse,
-        timestamp: new Date(),
-      });
-      
-      return offlineResponse;
-    }
-
     try {
-      console.log('📤 Enviando mensaje a Gemini...');
-      
-      // Rate limiting estricto
-      await this.waitForRateLimit();
-
-      this.chatHistory.push({
-        role: 'user',
-        content: userMessage,
-        timestamp: new Date(),
-      });
-
-      const mentionedHero = this.detectHeroMention(userMessage);
-      let enhancedMessage = userMessage;
-
-      if (mentionedHero) {
-        const heroInfo = this.getHeroInfo(mentionedHero);
-        if (heroInfo) {
-          const abilities = heroInfo.abilities?.slice(0, 2).map(a => a.ability_name).join(', ') || 'N/A';
-          enhancedMessage = `${userMessage}\n\n[CONTEXTO]: ${heroInfo.name} es ${heroInfo.role} (${heroInfo.difficultyStars}⭐). ${heroInfo.description?.substring(0, 80)}. Habilidades: ${abilities}`;
+      if (!this.model) {
+        await this.initializeAPI();
+        if (!this.model) {
+          return '⚠️ No puedo conectar con la IA. Verifica tu API Key de Gemini.';
         }
       }
 
-      const recentHistory = this.chatHistory.slice(-2).map(msg => 
-        `${msg.role === 'user' ? 'Usuario' : 'Galacta'}: ${msg.content}`
-      ).join('\n');
+      // Rate limiting
+      await this.waitIfNeeded();
 
+      // Contexto del sistema
       const systemContext = await this.getSystemContext();
-      const fullPrompt = `${systemContext}\n\nHistorial:\n${recentHistory}\n\nUsuario: ${enhancedMessage}\n\nGalacta (responde en 2 párrafos MAX):`;
 
-      const result = await this.model.generateContent(fullPrompt);
-      const aiMessage = result.response.text();
+      // Construir historial
+      const history = this.chatHistory.slice(-4).map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }],
+      }));
 
+      // Crear chat
+      const chat = this.model.startChat({
+        history,
+        generationConfig: {
+          maxOutputTokens: 1024,
+        },
+      });
+
+      // Enviar mensaje con contexto
+      const fullPrompt = this.chatHistory.length === 0 
+        ? `${systemContext}\n\nUsuario: ${userMessage}`
+        : userMessage;
+
+      const result = await chat.sendMessage(fullPrompt);
+      const response = result.response.text();
+
+      // Guardar en historial
       this.chatHistory.push({
-        role: 'assistant',
-        content: aiMessage,
+        role: 'user',
+        content: userMessage,
         timestamp: new Date(),
       });
 
-      console.log('✅ Respuesta recibida');
-      return aiMessage;
-      
-    } catch (error: any) {
-      console.error('❌ Error con Gemini:', error);
-      
-      // Respuesta offline si hay error
-      let fallbackMessage = '';
-      
-      if (error.message?.includes('API_KEY') || error.message?.includes('API key')) {
-        fallbackMessage = '⚠️ Error con la API Key.\n\n💡 Para activar Gemini:\n1. Ve a https://aistudio.google.com/app/apikey\n2. Crea una API Key gratuita\n3. Pégala en services/geminiService.ts\n\nPor ahora funciono en modo básico. 💜';
-      } else if (error.message?.includes('quota') || error.message?.includes('429') || error.message?.includes('RESOURCE_EXHAUSTED')) {
-        fallbackMessage = '⚠️ ¡Ups! He alcanzado mi límite de uso.\n\n💡 Soluciones:\n\n1️⃣ **Espera 1-2 minutos** y vuelve a intentar\n2️⃣ **Crea una nueva API Key** en https://aistudio.google.com/app/apikey\n3️⃣ **Modo offline**: Puedo darte info básica de héroes sin IA\n\nEl límite gratuito de Gemini es de 15 requests/minuto. 💜';
-      } else if (error.message?.includes('SAFETY')) {
-        fallbackMessage = '⚠️ Mi filtro de seguridad bloqueó esa respuesta.\n\n¿Podrías reformular tu pregunta? 💜';
-      } else {
-        fallbackMessage = `⚠️ Error temporal: ${error.message}\n\nIntenta de nuevo en unos segundos. 💜`;
+      this.chatHistory.push({
+        role: 'assistant',
+        content: response,
+        timestamp: new Date(),
+      });
+
+      // Limitar historial a 10 mensajes
+      if (this.chatHistory.length > 10) {
+        this.chatHistory = this.chatHistory.slice(-10);
       }
 
-      this.chatHistory.push({
-        role: 'assistant',
-        content: fallbackMessage,
-        timestamp: new Date(),
-      });
+      return response;
 
-      return fallbackMessage;
+    } catch (error: any) {
+      console.error('❌ Error Gemini:', error);
+      
+      if (error.message?.includes('429')) {
+        return '⏳ Demasiadas peticiones. Espera unos segundos e intenta de nuevo.';
+      }
+      
+      if (error.message?.includes('quota')) {
+        return '⚠️ Límite de cuota alcanzado. Intenta más tarde o verifica tu API Key.';
+      }
+      
+      return '❌ Error procesando tu mensaje. Intenta de nuevo.';
     }
   }
 
   /**
-   * ✅ NUEVO: Comparar dos héroes con análisis IA detallado
+   * Comparar dos héroes con IA
    */
   async compareHeroes(hero1: Hero, hero2: Hero): Promise<AIComparison> {
-    // Modo offline si no hay modelo
-    if (!this.model || !this.genAI) {
-      return this.getOfflineResponse('comparison', { hero1, hero2 });
-    }
-
     try {
-      console.log('📤 Comparando héroes...');
+      if (!this.model) {
+        await this.initializeAPI();
+      }
 
-      // Rate limiting estricto
-      await this.waitForRateLimit();
+      await this.waitIfNeeded();
 
-      const userContext = await this.getUserContext();
-      
-      // Prompt más corto para ahorrar tokens
-      const prompt = `Compara ${hero1.name} (${hero1.role}, ${hero1.difficultyStars}⭐) vs ${hero2.name} (${hero2.role}, ${hero2.difficultyStars}⭐).
+      const prompt = `Como Galacta, analiza estos 2 héroes de Marvel Rivals:
 
-JSON con 3 pros/cons cada uno + veredicto breve:
+HÉROE 1: ${hero1.alias || hero1.name}
+- Rol: ${hero1.role}
+- Dificultad: ${'⭐'.repeat(hero1.difficultyStars || 3)}
+- Descripción: ${hero1.description || 'N/A'}
+
+HÉROE 2: ${hero2.alias || hero2.name}
+- Rol: ${hero2.role}
+- Dificultad: ${'⭐'.repeat(hero2.difficultyStars || 3)}
+- Descripción: ${hero2.description || 'N/A'}
+
+Responde SOLO en este formato JSON:
 {
   "hero1Pros": ["pro1", "pro2", "pro3"],
-  "hero1Cons": ["con1", "con2", "con3"],
+  "hero1Cons": ["con1", "con2"],
   "hero2Pros": ["pro1", "pro2", "pro3"],
-  "hero2Cons": ["con1", "con2", "con3"],
-  "verdict": "1 oración con emoji",
-  "recommendation": "1 oración con emoji"
-}
-
-SOLO JSON.`;
+  "hero2Cons": ["con1", "con2"],
+  "verdict": "Resumen de 2-3 líneas sobre cuál es mejor y por qué",
+  "recommendation": "Recomendación personalizada de 2-3 líneas"
+}`;
 
       const result = await this.model.generateContent(prompt);
-      const responseText = result.response.text();
-      
+      const response = result.response.text();
+
       // Limpiar respuesta
-      let cleanedResponse = responseText.trim();
-      if (cleanedResponse.startsWith('```json')) {
-        cleanedResponse = cleanedResponse.replace(/```json\n?/g, '').replace(/```\n?$/g, '');
-      } else if (cleanedResponse.startsWith('```')) {
-        cleanedResponse = cleanedResponse.replace(/```\n?/g, '');
-      }
-      
-      const comparison = JSON.parse(cleanedResponse);
-      
-      // Validar estructura
-      if (!comparison.hero1Pros || !comparison.hero1Cons || 
-          !comparison.hero2Pros || !comparison.hero2Cons ||
-          !comparison.verdict || !comparison.recommendation) {
-        throw new Error('Respuesta inválida');
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('Respuesta inválida de la IA');
       }
 
-      console.log('✅ Comparación completada');
+      const comparison: AIComparison = JSON.parse(jsonMatch[0]);
       return comparison;
+
+    } catch (error) {
+      console.error('❌ Error comparando héroes:', error);
       
-    } catch (error: any) {
-      console.error('❌ Error comparando:', error);
-      
-      // Fallback a respuesta offline
-      return this.getOfflineResponse('comparison', { hero1, hero2 });
+      // Fallback
+      return {
+        hero1Pros: [
+          'Héroe versátil y efectivo',
+          'Buen daño en su rol',
+          'Habilidades útiles para el equipo',
+        ],
+        hero1Cons: [
+          'Requiere práctica para dominar',
+          'Vulnerable sin apoyo',
+        ],
+        hero2Pros: [
+          'Excelente en su rol específico',
+          'Alto impacto en partidas',
+          'Mecánicas interesantes',
+        ],
+        hero2Cons: [
+          'Curva de aprendizaje',
+          'Depende de la composición',
+        ],
+        verdict: `${hero1.alias || hero1.name} y ${hero2.alias || hero2.name} son excelentes opciones. ${hero1.alias || hero1.name} destaca por su versatilidad mientras que ${hero2.alias || hero2.name} sobresale en situaciones específicas.`,
+        recommendation: `Te recomiendo probar ambos héroes y elegir según tu estilo de juego. ${hero1.alias || hero1.name} para mayor flexibilidad, ${hero2.alias || hero2.name} para máximo impacto en tu rol.`,
+      };
     }
   }
 
-  private detectHeroMention(message: string): string | null {
-    const lowerMessage = message.toLowerCase();
-    
-    for (const hero of this.heroes) {
-      if (lowerMessage.includes(hero.name.toLowerCase()) ||
-          (hero.alias && lowerMessage.includes(hero.alias.toLowerCase()))) {
-        return hero.name;
-      }
-    }
-    
-    return null;
+  /**
+   * Obtener sugerencias rápidas
+   */
+  getQuickSuggestions(): string[] {
+    return [
+      '¿Qué héroe me recomiendas para empezar?',
+      'Dame tips para jugar mejor',
+      '¿Cuál es la mejor composición 2-2-2?',
+      'Compara Spider-Man vs Iron Man',
+      '¿Cómo counterar a Hela?',
+      'Estrategias para ganar más partidas',
+    ];
   }
 
-  getChatHistory(): ChatMessage[] {
-    return [...this.chatHistory];
-  }
-
+  /**
+   * Limpiar historial
+   */
   clearHistory() {
     this.chatHistory = [];
     console.log('🧹 Historial limpiado');
   }
 
-  getQuickSuggestions(): string[] {
-    return [
-      "¡Hola Galacta! ¿Qué héroe me recomiendas?",
-      "Quiero jugar con Spider-Man",
-      "¿Cuál es la mejor composición?",
-      "Dame tips para Strategist",
-      "Soy principiante, ¿por dónde empiezo?",
-      "¿Cómo mejoro con los Duelists?",
-    ];
-  }
-
-  async analyzeHero(heroName: string): Promise<string> {
-    const hero = this.getHeroInfo(heroName);
-    
-    if (!hero) {
-      return `No encontré a "${heroName}". ¿Podrías verificar el nombre?`;
-    }
-
-    await this.waitForRateLimit();
-
-    const abilities = hero.abilities?.slice(0, 2).map(a => `- ${a.ability_name}`).join('\n') || 'N/A';
-    const userContext = await this.getUserContext();
-    
-    const prompt = `Como Galacta 💜, analiza al héroe ${hero.name}:
-
-**Datos:**
-- Rol: ${hero.role}
-- Dificultad: ${hero.difficultyStars}/5⭐
-- Descripción: ${hero.description?.substring(0, 200)}
-- Habilidades:
-${abilities}
-${userContext}
-
-Da un análisis (3 párrafos) sobre:
-1. ¿Para qué jugador es ideal?
-2. Pros y contras
-3. Tips de juego
-
-Usa emojis.`;
-
-    const result = await this.model.generateContent(prompt);
-    return result.response.text();
-  }
-
-  async suggestComposition(context?: string): Promise<string> {
-    await this.waitForRateLimit();
-
-    const duelists = this.heroes.filter(h => h.role === 'Duelist').slice(0, 5);
-    const vanguards = this.heroes.filter(h => h.role === 'Vanguard').slice(0, 5);
-    const strategists = this.heroes.filter(h => h.role === 'Strategist').slice(0, 5);
-    const userContext = await this.getUserContext();
-
-    const prompt = `Como Galacta 💜, sugiere una comp balanceada.
-
-**Héroes:**
-- Duelists: ${duelists.map(h => h.name).join(', ')}
-- Vanguards: ${vanguards.map(h => h.name).join(', ')}
-- Strategists: ${strategists.map(h => h.name).join(', ')}
-
-${context ? `**Contexto:** ${context}` : ''}
-${userContext}
-
-Sugiere comp 2-2-2 explicando:
-1. Por qué cada héroe
-2. Synergias
-3. Estrategia
-
-3 párrafos con emojis.`;
-
-    const result = await this.model.generateContent(prompt);
-    return result.response.text();
+  /**
+   * Obtener información de un héroe
+   */
+  getHeroInfo(heroName: string): Hero | undefined {
+    const searchName = heroName.toLowerCase();
+    return this.heroes.find(
+      h => 
+        h.name.toLowerCase().includes(searchName) ||
+        h.alias?.toLowerCase().includes(searchName)
+    );
   }
 }
 
